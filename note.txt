@@ -1,0 +1,1 @@
+print(model.pts_bbox_head.transformer.encoder.layers[0].attentions[0].output_proj.bias)

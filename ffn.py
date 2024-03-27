@@ -64,10 +64,12 @@ class FFN(nn.Module):
             layers.append(
                 Sequential(
                     Linear(in_channels, feedforward_channels), self.activate,
-                    nn.Dropout(ffn_drop)))
+                    #change to ffn_drop 
+                    nn.Dropout(p=0)))
             in_channels = feedforward_channels
         layers.append(Linear(feedforward_channels, embed_dims))
-        layers.append(nn.Dropout(ffn_drop))
+        #change to ffn_drop
+        layers.append(nn.Dropout(p=0))
         self.layers = Sequential(*layers)
         self.dropout_layer = build_dropout(
             dropout_layer) if dropout_layer else torch.nn.Identity()

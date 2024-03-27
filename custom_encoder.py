@@ -7,7 +7,8 @@ import warnings
 import torch.nn as nn
 import utils
 import time
-from utils import ModuleList
+import pickle
+from utils import ModuleList, TORCH_VERSION
 from custom_base_transformer_layer import CustomBaseTransformerLayer
 from builder import build_attention,build_feedforward_network,build_transformer_layer
 
@@ -19,7 +20,7 @@ class BEVFormerEncoder(nn.Module):
         self.layers = ModuleList()
         transformerlayer = {'type': 'BEVFormerLayer', 'attn_cfgs': [{'type': 'TemporalSelfAttention', 'embed_dims': 256, 'num_levels': 1}, {'type': 'SpatialCrossAttention', 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'deformable_attention': {'type': 'MSDeformableAttention3D', 'embed_dims': 256, 'num_points': 8, 'num_levels': 4}, 'embed_dims': 256}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}
         for _ in range(self.num_layers):
-            self.layers.append(BEVFormerLayer(**transformerlayer))
+            self.layers.append(build_transformer_layer(transformerlayer))
         
         
         self.embed_dims = self.layers[0].embed_dims
@@ -117,7 +118,7 @@ class BEVFormerEncoder(nn.Module):
                     & (reference_points_cam[..., 0:1] > 0.0))
         
         # if digit_version(TORCH_VERSION) >= digit_version('1.8'):
-        #     bev_mask = torch.nan_to_num(bev_mask)
+        bev_mask = torch.nan_to_num(bev_mask)
         # else:
         #     bev_mask = bev_mask.new_tensor(
         #         np.nan_to_num(bev_mask.cpu().numpy()))
@@ -275,7 +276,7 @@ class BEVFormerLayer(CustomBaseTransformerLayer):
             for layer in self.operation_order:
                 # temporal self attention
                 if layer == 'self_attn':
-
+    
                     query = self.attentions[attn_index](
                         query,
                         prev_bev,
@@ -294,11 +295,13 @@ class BEVFormerLayer(CustomBaseTransformerLayer):
                     identity = query
 
                 elif layer == 'norm':
+           
                     query = self.norms[norm_index](query)
                     norm_index += 1
 
                 # spaital cross attention
                 elif layer == 'cross_attn':
+        
                     query = self.attentions[attn_index](
                         query,
                         key,
@@ -318,12 +321,17 @@ class BEVFormerLayer(CustomBaseTransformerLayer):
                     identity = query
 
                 elif layer == 'ffn':
+  
                     query = self.ffns[ffn_index](
                         query, identity if self.pre_norm else None)
                     ffn_index += 1
                     
             return query
 
+def build_custom_encoder():
+    pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+    encoder = BEVFormerEncoder(pc_range=pc_range,num_points_in_pillar=4)
+    return encoder
 # Only these fields are used
 #bev_query: torch.Size([1, 40000, 256]) torch.float32
 #key: torch.Size([6, 30825, 1, 256]) torch.float32
@@ -376,104 +384,24 @@ if __name__ == "__main__":
     
     pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
     encoder = BEVFormerEncoder(pc_range=pc_range,num_points_in_pillar=4)
+
+    encoder.load_state_dict(torch.load("/tmp/encoder.pth"))
     
-    bev_query = torch.rand((40000,1,256),dtype=torch.float32,device="cuda")
-    key = torch.rand((6,30825,1,256),dtype=torch.float32,device="cuda")
-    value = torch.rand((6,30825,1,256),dtype=torch.float32,device="cuda")
-    bev_pos = torch.rand((40000,1,256),dtype=torch.float32,device="cuda")
-    args = None
-    bev_h = 200
-    bev_w = 200
-    spatial_shapes = torch.randint(0, 10, (4,2,), dtype=torch.int64,device="cuda")
-    level_start_index = torch.randint(0, 10, (4,), dtype=torch.int64, device="cuda")
-    ## not usual case
-    prev_bev = None
-    shift = torch.rand((1,2),dtype=torch.float32,device="cuda")
-    import numpy as np
+    with open("/tmp/input.pickle","rb") as f:
+        inputs = pickle.load(f)
+    
+    print(inputs)
+    bev_query = inputs["query"]
+    inputs.pop("query")
 
-    img_metas = [
-        {
-            'filename': [
-                './data/nuscenes/samples/CAM_FRONT/n008-2018-08-01-15-16-36-0400__CAM_FRONT__1533151603512404.jpg',
-                './data/nuscenes/samples/CAM_FRONT_RIGHT/n008-2018-08-01-15-16-36-0400__CAM_FRONT_RIGHT__1533151603520482.jpg',
-                './data/nuscenes/samples/CAM_FRONT_LEFT/n008-2018-08-01-15-16-36-0400__CAM_FRONT_LEFT__1533151603504799.jpg',
-                './data/nuscenes/samples/CAM_BACK/n008-2018-08-01-15-16-36-0400__CAM_BACK__1533151603537558.jpg',
-                './data/nuscenes/samples/CAM_BACK_LEFT/n008-2018-08-01-15-16-36-0400__CAM_BACK_LEFT__1533151603547405.jpg',
-                './data/nuscenes/samples/CAM_BACK_RIGHT/n008-2018-08-01-15-16-36-0400__CAM_BACK_RIGHT__1533151603528113.jpg'
-            ],
-            'ori_shape': [(900, 1600, 3), (900, 1600, 3), (900, 1600, 3), (900, 1600, 3), (900, 1600, 3), (900, 1600, 3)],
-            'img_shape': [(928, 1600, 3), (928, 1600, 3), (928, 1600, 3), (928, 1600, 3), (928, 1600, 3), (928, 1600, 3)],
-            'lidar2img': 
-                np.array([
-                        [[ 1.24260095e+03,  8.41158373e+02,  3.44099656e+01, -3.60446564e+02],
-                        [-1.72116587e+01,  5.37393665e+02, -1.22529101e+03, -6.49151089e+02],
-                        [-1.21784540e-02,  9.98439428e-01,  5.45013163e-02, -4.36208813e-01],
-                        [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]],
-
-                        [[ 1.36511796e+03, -6.18946764e+02, -3.94097576e+01, -4.53496105e+02],
-                        [ 3.80496015e+02,  3.20964153e+02, -1.23930795e+03, -6.93174459e+02],
-                        [ 8.43260017e-01,  5.36482073e-01,  3.31591610e-02, -6.13056247e-01],
-                        [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]],
-                        
-                        [[ 1.36511796e+03, -6.18946764e+02, -3.94097576e+01, -4.53496105e+02],
-                        [ 3.80496015e+02,  3.20964153e+02, -1.23930795e+03, -6.93174459e+02],
-                        [ 8.43260017e-01,  5.36482073e-01,  3.31591610e-02, -6.13056247e-01],
-                        [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]],
-
-                        [[ 1.36511796e+03, -6.18946764e+02, -3.94097576e+01, -4.53496105e+02],
-                        [ 3.80496015e+02,  3.20964153e+02, -1.23930795e+03, -6.93174459e+02],
-                        [ 8.43260017e-01,  5.36482073e-01,  3.31591610e-02, -6.13056247e-01],
-                        [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]],
-                        
-                        [[ 1.36511796e+03, -6.18946764e+02, -3.94097576e+01, -4.53496105e+02],
-                        [ 3.80496015e+02,  3.20964153e+02, -1.23930795e+03, -6.93174459e+02],
-                        [ 8.43260017e-01,  5.36482073e-01,  3.31591610e-02, -6.13056247e-01],
-                        [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]],
-                        
-                        [[ 3.12748132e+01,  1.50313516e+03,  7.84379369e+01,  4.45667655e+02],
-                        [-1.22454517e+02, -1.25009734e+03, -5.85809178e+02, 0.00000000e+00],
-                        [ 9.24111984e-01, -3.82108958e-01, -3.12805665e-03, -4.60392010e-01],
-                        [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]]
-                        ]),
-            'pad_shape': [(928, 1600, 3), (928, 1600, 3), (928, 1600, 3), (928, 1600, 3), (928, 1600, 3), (928, 1600, 3)],
-            'scale_factor': 1.0,
-            'flip': False,
-            'pcd_horizontal_flip': False,
-            'pcd_vertical_flip': False,
-            'box_mode_3d': 'LIDAR',
-            'box_type_3d': 'LiDARInstance3DBoxes',
-            'img_norm_cfg': {'mean': np.array([103.53, 116.28, 123.675], dtype=np.float32), 'std': np.array([1., 1., 1.], dtype=np.float32), 'to_rgb': False},
-            'sample_idx': '3e8750f331d7499e9b5123e9eb70f2e2',
-            'prev_idx': '',
-            'next_idx': '3950bd41f74548429c0f7700ff3d8269',
-            'pcd_scale_factor': 1.0,
-            'pts_filename': './data/nuscenes/samples/LIDAR_TOP/n008-2018-08-01-15-16-36-0400__LIDAR_TOP__1533151603547590.pcd.bin',
-            'scene_token': 'fcbccedd61424f1b85dcbf8f897f9754',
-            'can_bus': np.array([ 6.00120214e+02, 1.64749078e+03, 0.00000000e+00, -9.68669702e-01, -9.68669702e-01, -9.68669702e-01, -9.68669702e-01, -6.06941519e-01, -7.63441180e-02, 9.87149385e+00, -2.10869126e-02, -1.24397185e-02, -2.30670013e-02, 8.56405970e+00, 0.00000000e+00, 0.00000000e+00, 5.78155401e+00, 3.31258644e+02])
-        }
-    ]
     for _ in range(100):
         torch.cuda.synchronize()
         start = time.perf_counter()
-        encoder(
-            bev_query,
-            key,
-            value,
-            bev_h=bev_h,
-            bev_w=bev_w,
-            bev_pos=bev_pos,
-            spatial_shapes=spatial_shapes,
-            level_start_index=level_start_index,
-            valid_ratios=None,
-            prev_bev=None,
-            shift=shift,
-            img_metas=img_metas,
-        )
+        result = encoder(bev_query,**inputs)
         torch.cuda.synchronize()
         end = time.perf_counter()
         print(f"encoder: {(end - start) * 1000}ms")
-
-        
+    
         
         
         

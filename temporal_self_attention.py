@@ -25,7 +25,8 @@ class TemporalSelfAttention(nn.Module):
                             f'but got {embed_dims} and {num_heads}')
         dim_per_head = embed_dims // num_heads
         self.norm_cfg = norm_cfg
-        self.dropout = nn.Dropout(dropout)
+        # TODO change when test ok dropout
+        self.dropout = nn.Dropout(p=0)
         self.batch_first = batch_first
         self.fp16_enabled = False
 
@@ -61,11 +62,8 @@ class TemporalSelfAttention(nn.Module):
         
     
     def init_weights(self):
+        """Default initialization for Parameters of Module."""
         constant_init(self.sampling_offsets, 0.)
-        thetas = torch.arange(
-            self.num_heads,
-            dtype=torch.float32) * (2.0 * math.pi / self.num_heads)
-        grid_init = torch.stack([thetas.cos(), thetas.sin()], -1)
         thetas = torch.arange(
             self.num_heads,
             dtype=torch.float32) * (2.0 * math.pi / self.num_heads)
@@ -96,7 +94,6 @@ class TemporalSelfAttention(nn.Module):
                 level_start_index=None,
                 flag='decoder',
                 **kwargs):
-        
         if value is None:
             assert self.batch_first
             bs, len_bev, c = query.shape
@@ -127,6 +124,7 @@ class TemporalSelfAttention(nn.Module):
         sampling_offsets = self.sampling_offsets(query)
         sampling_offsets = sampling_offsets.view(
             bs, num_query, self.num_heads,  self.num_bev_queue, self.num_levels, self.num_points, 2)
+        
         attention_weights = self.attention_weights(query).view(
             bs, num_query,  self.num_heads, self.num_bev_queue, self.num_levels * self.num_points)
         attention_weights = attention_weights.softmax(-1)
@@ -158,10 +156,11 @@ class TemporalSelfAttention(nn.Module):
             raise ValueError(
                 f'Last dim of reference_points must be'
                 f' 2 or 4, but get {reference_points.shape[-1]} instead.')
+            
         if torch.cuda.is_available() and value.is_cuda:
-
             # using fp16 deformable attention is unstable because it performs many sum operations
             if value.dtype == torch.float16:
+                assert False
                 MultiScaleDeformableAttnFunction = MultiScaleDeformableAttnFunction_fp32
             else:
                 MultiScaleDeformableAttnFunction = MultiScaleDeformableAttnFunction_fp32
@@ -169,10 +168,10 @@ class TemporalSelfAttention(nn.Module):
                 value, spatial_shapes, level_start_index, sampling_locations,
                 attention_weights, self.im2col_step)
         else:
-
+            assert False
             output = multi_scale_deformable_attn_pytorch(
                 value, spatial_shapes, sampling_locations, attention_weights)
-
+            
         # output shape (bs*num_bev_queue, num_query, embed_dims)
         # (bs*num_bev_queue, num_query, embed_dims)-> (num_query, embed_dims, bs*num_bev_queue)
         output = output.permute(1, 2, 0)
@@ -184,9 +183,9 @@ class TemporalSelfAttention(nn.Module):
 
         # (num_query, embed_dims, bs)-> (bs, num_query, embed_dims)
         output = output.permute(2, 0, 1)
-
         output = self.output_proj(output)
-
+             
+             
         if not self.batch_first:
             output = output.permute(1, 0, 2)
 

@@ -42,8 +42,6 @@ def build_activation_layer(cfg):
     layer = nn.ReLU(**cfg_).to("cuda")
     return layer
     
-    
-    
 def build_dropout(cfg,default_args=None):
     assert False
     
@@ -58,7 +56,7 @@ def build_feedforward_network(cfg):
     return layer
 
 def build_transformer_layer(cfg):
-    from encoder import BEVFormerLayer
+    from custom_encoder import BEVFormerLayer
     cfg_ = cfg.copy()
     type = cfg_['type']
     cfg_.pop('type')

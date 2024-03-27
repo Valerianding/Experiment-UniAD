@@ -25,7 +25,8 @@ class SpatialCrossAttention(nn.Module):
         
         #build_attention
         self.init_cfg = init_cfg
-        self.dropout = nn.Dropout(dropout)
+        #TODO change to dropout
+        self.dropout = nn.Dropout(p=0)
         self.pc_range = pc_range
         self.fp16_enabled = False
         from builder import build_attention
@@ -124,6 +125,7 @@ class SpatialCrossAttention(nn.Module):
             bs * self.num_cams, l, self.embed_dims)
         value = value.permute(2, 0, 1, 3).reshape(
             bs * self.num_cams, l, self.embed_dims)
+        
 
         queries = self.deformable_attention(query=queries_rebatch.view(bs*self.num_cams, max_len, self.embed_dims), key=key, value=value,
                                             reference_points=reference_points_rebatch.view(bs*self.num_cams, max_len, D, 2), spatial_shapes=spatial_shapes,
@@ -137,7 +139,8 @@ class SpatialCrossAttention(nn.Module):
         count = torch.clamp(count, min=1.0)
         slots = slots / count[..., None]
         slots = self.output_proj(slots)
-
+        
+        
         return self.dropout(slots) + inp_residual
     
     
@@ -253,7 +256,6 @@ class MSDeformableAttention3D(nn.Module):
         Returns:
              Tensor: forwarded results with shape [num_query, bs, embed_dims].
         """
-
         if value is None:
             value = query
         if identity is None:
@@ -268,9 +270,10 @@ class MSDeformableAttention3D(nn.Module):
 
         bs, num_query, _ = query.shape
         bs, num_value, _ = value.shape
-        # assert (spatial_shapes[:, 0] * spatial_shapes[:, 1]).sum() == num_value
+        assert (spatial_shapes[:, 0] * spatial_shapes[:, 1]).sum() == num_value
 
         value = self.value_proj(value)
+        
         if key_padding_mask is not None:
             value = value.masked_fill(key_padding_mask[..., None], 0.0)
         value = value.view(bs, num_value, self.num_heads, -1)
@@ -305,7 +308,7 @@ class MSDeformableAttention3D(nn.Module):
                 bs, num_query, num_heads, num_levels, num_all_points // num_Z_anchors, num_Z_anchors, xy)
             sampling_locations = reference_points + sampling_offsets
             bs, num_query, num_heads, num_levels, num_points, num_Z_anchors, xy = sampling_locations.shape
-            # assert num_all_points == num_points * num_Z_anchors
+            assert num_all_points == num_points * num_Z_anchors
 
             sampling_locations = sampling_locations.view(
                 bs, num_query, num_heads, num_levels, num_all_points, xy)
@@ -326,6 +329,7 @@ class MSDeformableAttention3D(nn.Module):
                 MultiScaleDeformableAttnFunction = MultiScaleDeformableAttnFunction_fp32
             else:
                 MultiScaleDeformableAttnFunction = MultiScaleDeformableAttnFunction_fp32
+                
             output = MultiScaleDeformableAttnFunction.apply(
                 value, spatial_shapes, level_start_index, sampling_locations,
                 attention_weights, self.im2col_step)
