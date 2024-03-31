@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import cv2 as cv
-import mmcv
 import copy
 import warnings
 import torch.nn as nn
@@ -366,41 +365,15 @@ def build_custom_encoder():
     #     5.78155401e+00,  3.31258644e+02])}]
     
 if __name__ == "__main__":
-    layer = build_attention({'type': 'TemporalSelfAttention', 'embed_dims': 256, 'num_levels': 1})
-    print(layer)
-
-    layer = build_attention({'type': 'MSDeformableAttention3D', 'embed_dims': 256, 'num_points': 8, 'num_levels': 4})
-    print(layer)
-
-    layer = build_attention({'type': 'SpatialCrossAttention', 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'deformable_attention': {'type': 'MSDeformableAttention3D', 'embed_dims': 256, 'num_points':
-    8, 'num_levels': 4}, 'embed_dims': 256})
-    print(layer)
-
-    layer = build_feedforward_network({'type': 'FFN', 'embed_dims': 256, 'feedforward_channels': 512, 'num_fcs': 2, 'ffn_drop': 0.1, 'act_cfg': {'type': 'ReLU', 'inplace': True}})
-    print(layer)
-
-    layer = build_transformer_layer({'type': 'BEVFormerLayer', 'attn_cfgs': [{'type': 'TemporalSelfAttention', 'embed_dims': 256, 'num_levels': 1}, {'type': 'SpatialCrossAttention', 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'deformable_attention': {'type': 'MSDeformableAttention3D', 'embed_dims': 256, 'num_points': 8, 'num_levels': 4}, 'embed_dims': 256}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')})
-    print(layer)
+    from builder import build_positional_encoding
+    cfg = {'type': 'SinePositionalEncoding', 'num_feats': 128, 'normalize': True, 'offset': -0.5}
+    encoding = build_positional_encoding(cfg)
+    print(encoding)
     
-    pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
-    encoder = BEVFormerEncoder(pc_range=pc_range,num_points_in_pillar=4)
-
-    encoder.load_state_dict(torch.load("/tmp/encoder.pth"))
-    
-    with open("/tmp/input.pickle","rb") as f:
-        inputs = pickle.load(f)
-    
-    print(inputs)
-    bev_query = inputs["query"]
-    inputs.pop("query")
-
-    for _ in range(100):
-        torch.cuda.synchronize()
-        start = time.perf_counter()
-        result = encoder(bev_query,**inputs)
-        torch.cuda.synchronize()
-        end = time.perf_counter()
-        print(f"encoder: {(end - start) * 1000}ms")
+    from builder import build_transformer_layer_sequence
+    cfg = {'type': 'DetrTransformerEncoder', 'num_layers': 6, 'transformerlayers': {'type': 'BaseTransformerLayer', 'attn_cfgs': {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}, 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'ffn', 'norm')}}
+    encoder = build_transformer_layer_sequence(cfg)
+    print(encoder)
     
         
         
