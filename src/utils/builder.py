@@ -7,13 +7,44 @@ def build_norm_layer(cfg, num_features):
     cfg_.pop('type')
     requires_grad = cfg_.pop('requires_grad', True)
     cfg_.setdefault('eps', 1e-5)
-    assert layer_type == 'LN'
-    layer = nn.LayerNorm(num_features, **cfg_).to("cuda")
+    if layer_type == 'LN':
+        layer = nn.LayerNorm(num_features, **cfg_).to("cuda")
+    elif layer_type == 'BN2d':
+        layer = nn.LayerNorm(num_features, **cfg_).to("cuda")
     
     for param in layer.parameters():
         param.requires_grad = requires_grad
     return layer
 
+def build_padding_layer(cfg, *args, **kwargs):
+    """Build padding layer.
+
+    Args:
+        cfg (None or dict): The padding layer config, which should contain:
+            - type (str): Layer type.
+            - layer args: Args needed to instantiate a padding layer.
+
+    Returns:
+        nn.Module: Created padding layer.
+    """
+    if not isinstance(cfg, dict):
+        raise TypeError('cfg must be a dict')
+    if 'type' not in cfg:
+        raise KeyError('the cfg dict must contain the key "type"')
+
+    cfg_ = cfg.copy()
+    padding_type = cfg_.pop('type')
+    if padding_type == 'zero':
+        padding_layer = nn.ZeroPad2d 
+    elif padding_type == 'reflect':
+        padding_layer = nn.ReflectionPad2d
+    elif padding_type == 'replicate':
+        padding_layer = nn.ReplicationPad2d
+    layer = padding_layer(*args, **kwargs, **cfg_)
+
+    return layer
+
+    
 def build_attention(cfg):
     assert isinstance(cfg,dict)
     
@@ -129,3 +160,10 @@ def get_transformer():
     cfg = {'type': 'SegDeformableTransformer', 'encoder': {'type': 'DetrTransformerEncoder', 'num_layers': 6, 'transformerlayers': {'type': 'BaseTransformerLayer', 'attn_cfgs': {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}, 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'ffn', 'norm')}}, 'decoder': {'type': 'DeformableDetrTransformerDecoder', 'num_layers': 6, 'return_intermediate': True, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': [{'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'dropout': 0.1}, {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}}
     transformer = build_transformer(cfg)
     return transformer
+
+
+
+def build_conv_layer(cfg, *args, **kwargs):
+    layer = nn.Conv2d(*args, **kwargs, **cfg)
+
+    return layer
