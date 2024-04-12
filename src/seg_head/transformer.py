@@ -97,7 +97,7 @@ class BaseTransformerLayer(nn.Module):
         self.norms = ModuleList()
         num_norms = operation_order.count('norm')
         for _ in range(num_norms):
-            self.norms.append(build_norm_layer(norm_cfg, self.embed_dims))
+            self.norms.append(build_norm_layer(norm_cfg, self.embed_dims)[1])
 
     def forward(self,
                 query,
@@ -295,7 +295,7 @@ class DetrTransformerEncoder(TransformerLayerSequence):
         super(DetrTransformerEncoder, self).__init__(*args, **kwargs)
         if post_norm_cfg is not None:
             self.post_norm = build_norm_layer(
-                post_norm_cfg, self.embed_dims) if self.pre_norm else None
+                post_norm_cfg, self.embed_dims)[1] if self.pre_norm else None
         else:
             assert not self.pre_norm, f'Use prenorm in ' \
                                       f'{self.__class__.__name__},' \
@@ -324,7 +324,7 @@ class DetrTransformerDecoder(TransformerLayerSequence):
         self.return_intermediate = return_intermediate
         if post_norm_cfg is not None:
             self.post_norm = build_norm_layer(post_norm_cfg,
-                                              self.embed_dims)
+                                              self.embed_dims)[1]
         else:
             self.post_norm = None
             
@@ -381,8 +381,7 @@ class DeformableDetrTransformerDecoder(TransformerLayerSequence):
                 assert reference_points.shape[-1] == 2
                 reference_points_input = reference_points[:, :, None] * \
                     valid_ratios[:, None]
-            import pdb 
-            pdb.set_trace()
+                    
             output = layer(
                 output,
                 *args,

@@ -1,18 +1,67 @@
 import torch
 from torch import nn
+def build_plugin_layer(cfg, *args, **kwargs):
+    if not isinstance(cfg,dict):
+        raise TypeError('cfg must be a dict')
+    if 'type' not in cfg:
+        raise KeyError('the cfg dict must contain the key "type"')  
+    cfg_ = cfg.copy()
+    layer_type = cfg_.pop('type')
+    assert False, f"build_plugin_layer not supported!"
 
-def build_norm_layer(cfg, num_features):
+def build_conv_layer(cfg, *args, **kwargs):
+    if cfg is None:
+        cfg_ = dict(type='Conv2d')
+    else:
+        if not isinstance(cfg,dict):
+            raise TypeError('cfg must be a dict')
+        if 'type' not in cfg:
+            raise KeyError('the cfg dict must contain the key "type"')
+        cfg_ = cfg.copy()
+    layer_type = cfg_.pop('type')
+    if layer_type == "Conv1d":
+        conv_layer = nn.Conv1d(*args,**kwargs,**cfg_).to("cuda")
+        return conv_layer
+    elif layer_type == "Conv2d":
+        conv_layer = nn.Conv2d(*args,**kwargs,**cfg_).to("cuda")
+        return conv_layer
+    elif layer_type == "DCNv2":
+        from src.ops.modulated_deform_conv import ModulatedDeformConv2dPack
+        conv_layer = ModulatedDeformConv2dPack(*args,**kwargs,**cfg_).to("cuda")
+        return conv_layer
+    else:
+        assert False, f"{layer_type} is not supported!"
+        
+    
+def build_norm_layer(cfg, num_features, postfix=''):
     cfg_ = cfg.copy()
     layer_type = cfg_['type']
     cfg_.pop('type')
+    
     requires_grad = cfg_.pop('requires_grad', True)
     cfg_.setdefault('eps', 1e-5)
-    assert layer_type == 'LN'
-    layer = nn.LayerNorm(num_features, **cfg_).to("cuda")
     
+    from src.utils.utils import infer_abbr
+    abbr = None
+    name = None
+    if layer_type == 'LN':
+        assert layer_type == 'LN'
+        abbr = infer_abbr(nn.LayerNorm)
+        layer = nn.LayerNorm(num_features, **cfg_).to("cuda")
+    elif layer_type == 'BN2d':
+        assert layer_type == "BN2d"
+        abbr = infer_abbr(nn.BatchNorm2d)
+        layer = nn.BatchNorm2d(num_features,**cfg_).to("cuda")
+    else:
+        assert False, f"{layer_type} is not supported"
+        
+
     for param in layer.parameters():
         param.requires_grad = requires_grad
-    return layer
+        
+    assert isinstance(postfix, (int, str))
+    name = abbr + str(postfix)
+    return name, layer
 
 def build_attention(cfg):
     assert isinstance(cfg,dict)
@@ -122,10 +171,24 @@ def build_positional_encoding(cfg):
     assert type == "SinePositionalEncoding"
     from src.modules.positional_encoding import SinePositionalEncoding
     encoding = SinePositionalEncoding(**cfg_).to("cuda")
-    return encoding
 
 
 def get_transformer():
     cfg = {'type': 'SegDeformableTransformer', 'encoder': {'type': 'DetrTransformerEncoder', 'num_layers': 6, 'transformerlayers': {'type': 'BaseTransformerLayer', 'attn_cfgs': {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}, 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'ffn', 'norm')}}, 'decoder': {'type': 'DeformableDetrTransformerDecoder', 'num_layers': 6, 'return_intermediate': True, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': [{'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'dropout': 0.1}, {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}}
     transformer = build_transformer(cfg)
-    return transformer
+
+
+def build_backbone(cfg):
+    cfg_ = cfg.copy()
+    type = cfg_['type']
+    cfg_.pop('type')
+    assert type == "ResNet"
+    from src.modules.resnet import ResNet
+    resnet = ResNet(**cfg_).to("cuda")
+    return resnet
+
+def build_bev_encoder():
+    from src.bevformer.custom_encoder import BEVFormerEncoder
+    pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+    encoder = BEVFormerEncoder(pc_range=pc_range,num_points_in_pillar=4)
+    return encoder

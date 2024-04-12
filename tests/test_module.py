@@ -31,3 +31,9 @@ def test_PansegformerHead():
     #     pc_range=pc_range,
     #     with_box_refine=with_box_refine, 
     # )
+    
+def test_BEVFormerEncoder():
+    from src.bevformer.custom_encoder import BEVFormerEncoder
+    pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+    encoder = BEVFormerEncoder(pc_range=pc_range,num_points_in_pillar=4)
+    return encoder

@@ -97,4 +97,4 @@ class CustomBaseTransformerLayer(nn.Module):
         num_norms = operation_order.count('norm')
         #norm
         for _ in range(num_norms):
-            self.norms.append(build_norm_layer(norm_cfg, self.embed_dims))
+            self.norms.append(build_norm_layer(norm_cfg, self.embed_dims)[1])

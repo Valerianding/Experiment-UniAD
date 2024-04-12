@@ -1,2 +1,6 @@
 **/.py_test/
+**/.pytest_cache/
 **/__pycache__/
+**/ops.egg-info/
+**/ops/dist/
+**/ops/build/

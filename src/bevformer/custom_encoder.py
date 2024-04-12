@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-import cv2 as cv
 import copy
 import warnings
 import torch.nn as nn
@@ -326,11 +325,6 @@ class BEVFormerLayer(CustomBaseTransformerLayer):
                     ffn_index += 1
                     
             return query
-
-def build_custom_encoder():
-    pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
-    encoder = BEVFormerEncoder(pc_range=pc_range,num_points_in_pillar=4)
-    return encoder
 # Only these fields are used
 #bev_query: torch.Size([1, 40000, 256]) torch.float32
 #key: torch.Size([6, 30825, 1, 256]) torch.float32
@@ -363,12 +357,6 @@ def build_custom_encoder():
     #    -7.63441180e-02,  9.87149385e+00, -2.10869126e-02, -1.24397185e-02,
     #    -2.30670013e-02,  8.56405970e+00,  0.00000000e+00,  0.00000000e+00,
     #     5.78155401e+00,  3.31258644e+02])}]
-    
-if __name__ == "__main__":
-    from src.utils.builder import build_positional_encoding
-    cfg = {'type': 'SinePositionalEncoding', 'num_feats': 128, 'normalize': True, 'offset': -0.5}
-    encoding = build_positional_encoding(cfg)
-    print(encoding)
     
         
         
