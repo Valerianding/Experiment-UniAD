@@ -4,10 +4,9 @@ import torch.nn as nn
 from einops import rearrange
 from src.utils.builder import build_conv_layer
 from collections import OrderedDict
-import ConvModule
+from .ConvModule import ConvModule
 
-
-class SimpleConv2d(nn.module):
+class SimpleConv2d(nn.Module):
     def __init__(self, in_channels, 
                        out_channels, 
                        

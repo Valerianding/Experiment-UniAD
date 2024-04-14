@@ -1,19 +1,25 @@
 import torch
 from torch import nn
 
-def build_norm_layer(cfg, num_features):
+def build_norm_layer(cfg, num_features, name_flag = False):
     cfg_ = cfg.copy()
     layer_type = cfg_['type']
     cfg_.pop('type')
     requires_grad = cfg_.pop('requires_grad', True)
     cfg_.setdefault('eps', 1e-5)
+    name = 'bn2d'
     if layer_type == 'LN':
         layer = nn.LayerNorm(num_features, **cfg_).to("cuda")
+        name = 'ln'
     elif layer_type == 'BN2d':
-        layer = nn.LayerNorm(num_features, **cfg_).to("cuda")
-    
+        layer = nn.BatchNorm2d(num_features, **cfg_).to("cuda")
+        name = 'bn'
+    else:
+        exit(-1)
     for param in layer.parameters():
         param.requires_grad = requires_grad
+    if name_flag:
+        return name, layer
     return layer
 
 def build_padding_layer(cfg, *args, **kwargs):
@@ -129,6 +135,10 @@ def build_transformer_layer_sequence(cfg):
         from src.seg_head.transformer import DetrTransformerEncoder
         encoder = DetrTransformerEncoder(**cfg_).to("cuda")
         return encoder
+    elif type == "DetrTransformerDecoder":
+        from src.seg_head.transformer import DetrTransformerDecoder
+        decoder = DetrTransformerDecoder(**cfg_).to("cuda")
+        return decoder
     elif type == "DeformableDetrTransformerDecoder":
         from src.seg_head.transformer import DeformableDetrTransformerDecoder
         decoder = DeformableDetrTransformerDecoder(**cfg_).to("cuda")
@@ -164,6 +174,8 @@ def get_transformer():
 
 
 def build_conv_layer(cfg, *args, **kwargs):
+    if 'type' in cfg.keys():
+        cfg.pop('type')
     layer = nn.Conv2d(*args, **kwargs, **cfg)
 
     return layer

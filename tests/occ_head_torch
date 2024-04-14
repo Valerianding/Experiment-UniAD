@@ -1,0 +1,518 @@
+OccHead(
+  (bev_sampler): BevFeatureSlicer()
+  (bev_light_proj): SimpleConv2d(
+    (conv_layers): Sequential(
+      (0): ConvModule(
+        (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (activate): ReLU(inplace=True)
+      )
+      (1): ConvModule(
+        (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (activate): ReLU(inplace=True)
+      )
+      (2): ConvModule(
+        (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (activate): ReLU(inplace=True)
+      )
+      (3): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1))
+    )
+  )
+  (base_downscale): Sequential(
+    (0): Bottleneck(
+      (layers): Sequential(
+        (conv_down_project): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_down_project): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (abn): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv_up_project): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_up_project): Sequential(
+          (0): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (dropout): Dropout2d(p=0.0, inplace=False)
+      )
+      (projection): Sequential(
+        (upsample_skip_proj): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+        (conv_skip_proj): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn_skip_proj): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): Bottleneck(
+      (layers): Sequential(
+        (conv_down_project): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_down_project): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (abn): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv_up_project): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_up_project): Sequential(
+          (0): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (dropout): Dropout2d(p=0.0, inplace=False)
+      )
+      (projection): Sequential(
+        (upsample_skip_proj): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+        (conv_skip_proj): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn_skip_proj): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+  )
+  (transformer_decoder): DetrTransformerDecoder(
+    (layers): ModuleList(
+      (0): DetrTransformerDecoderLayer(
+        (attentions): ModuleList(
+          (0): MultiheadAttention(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0, inplace=False)
+            (dropout_layer): Identity()
+          )
+          (1): MultiheadAttention(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0, inplace=False)
+            (dropout_layer): Identity()
+          )
+        )
+        (ffns): ModuleList(
+          (0): FFN(
+            (activate): ReLU(inplace=True)
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=2048, bias=True)
+                (1): ReLU(inplace=True)
+                (2): Dropout(p=0, inplace=False)
+              )
+              (1): Linear(in_features=2048, out_features=256, bias=True)
+              (2): Dropout(p=0, inplace=False)
+            )
+            (dropout_layer): Identity()
+          )
+        )
+        (norms): ModuleList(
+          (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+      (1): DetrTransformerDecoderLayer(
+        (attentions): ModuleList(
+          (0): MultiheadAttention(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0, inplace=False)
+            (dropout_layer): Identity()
+          )
+          (1): MultiheadAttention(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0, inplace=False)
+            (dropout_layer): Identity()
+          )
+        )
+        (ffns): ModuleList(
+          (0): FFN(
+            (activate): ReLU(inplace=True)
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=2048, bias=True)
+                (1): ReLU(inplace=True)
+                (2): Dropout(p=0, inplace=False)
+              )
+              (1): Linear(in_features=2048, out_features=256, bias=True)
+              (2): Dropout(p=0, inplace=False)
+            )
+            (dropout_layer): Identity()
+          )
+        )
+        (norms): ModuleList(
+          (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+      (2): DetrTransformerDecoderLayer(
+        (attentions): ModuleList(
+          (0): MultiheadAttention(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0, inplace=False)
+            (dropout_layer): Identity()
+          )
+          (1): MultiheadAttention(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0, inplace=False)
+            (dropout_layer): Identity()
+          )
+        )
+        (ffns): ModuleList(
+          (0): FFN(
+            (activate): ReLU(inplace=True)
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=2048, bias=True)
+                (1): ReLU(inplace=True)
+                (2): Dropout(p=0, inplace=False)
+              )
+              (1): Linear(in_features=2048, out_features=256, bias=True)
+              (2): Dropout(p=0, inplace=False)
+            )
+            (dropout_layer): Identity()
+          )
+        )
+        (norms): ModuleList(
+          (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+      (3): DetrTransformerDecoderLayer(
+        (attentions): ModuleList(
+          (0): MultiheadAttention(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0, inplace=False)
+            (dropout_layer): Identity()
+          )
+          (1): MultiheadAttention(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0, inplace=False)
+            (dropout_layer): Identity()
+          )
+        )
+        (ffns): ModuleList(
+          (0): FFN(
+            (activate): ReLU(inplace=True)
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=2048, bias=True)
+                (1): ReLU(inplace=True)
+                (2): Dropout(p=0, inplace=False)
+              )
+              (1): Linear(in_features=2048, out_features=256, bias=True)
+              (2): Dropout(p=0, inplace=False)
+            )
+            (dropout_layer): Identity()
+          )
+        )
+        (norms): ModuleList(
+          (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+      (4): DetrTransformerDecoderLayer(
+        (attentions): ModuleList(
+          (0): MultiheadAttention(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0, inplace=False)
+            (dropout_layer): Identity()
+          )
+          (1): MultiheadAttention(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0, inplace=False)
+            (dropout_layer): Identity()
+          )
+        )
+        (ffns): ModuleList(
+          (0): FFN(
+            (activate): ReLU(inplace=True)
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=2048, bias=True)
+                (1): ReLU(inplace=True)
+                (2): Dropout(p=0, inplace=False)
+              )
+              (1): Linear(in_features=2048, out_features=256, bias=True)
+              (2): Dropout(p=0, inplace=False)
+            )
+            (dropout_layer): Identity()
+          )
+        )
+        (norms): ModuleList(
+          (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+    (post_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+  )
+  (temporal_mlps): ModuleList(
+    (0): MLP(
+      (layers): ModuleList(
+        (0): Linear(in_features=256, out_features=256, bias=True)
+        (1): Linear(in_features=256, out_features=256, bias=True)
+      )
+    )
+    (1): MLP(
+      (layers): ModuleList(
+        (0): Linear(in_features=256, out_features=256, bias=True)
+        (1): Linear(in_features=256, out_features=256, bias=True)
+      )
+    )
+    (2): MLP(
+      (layers): ModuleList(
+        (0): Linear(in_features=256, out_features=256, bias=True)
+        (1): Linear(in_features=256, out_features=256, bias=True)
+      )
+    )
+    (3): MLP(
+      (layers): ModuleList(
+        (0): Linear(in_features=256, out_features=256, bias=True)
+        (1): Linear(in_features=256, out_features=256, bias=True)
+      )
+    )
+    (4): MLP(
+      (layers): ModuleList(
+        (0): Linear(in_features=256, out_features=256, bias=True)
+        (1): Linear(in_features=256, out_features=256, bias=True)
+      )
+    )
+  )
+  (downscale_convs): ModuleList(
+    (0): Bottleneck(
+      (layers): Sequential(
+        (conv_down_project): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_down_project): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (abn): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv_up_project): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_up_project): Sequential(
+          (0): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (dropout): Dropout2d(p=0.0, inplace=False)
+      )
+      (projection): Sequential(
+        (upsample_skip_proj): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+        (conv_skip_proj): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn_skip_proj): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): Bottleneck(
+      (layers): Sequential(
+        (conv_down_project): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_down_project): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (abn): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv_up_project): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_up_project): Sequential(
+          (0): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (dropout): Dropout2d(p=0.0, inplace=False)
+      )
+      (projection): Sequential(
+        (upsample_skip_proj): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+        (conv_skip_proj): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn_skip_proj): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (2): Bottleneck(
+      (layers): Sequential(
+        (conv_down_project): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_down_project): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (abn): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv_up_project): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_up_project): Sequential(
+          (0): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (dropout): Dropout2d(p=0.0, inplace=False)
+      )
+      (projection): Sequential(
+        (upsample_skip_proj): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+        (conv_skip_proj): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn_skip_proj): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (3): Bottleneck(
+      (layers): Sequential(
+        (conv_down_project): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_down_project): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (abn): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv_up_project): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_up_project): Sequential(
+          (0): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (dropout): Dropout2d(p=0.0, inplace=False)
+      )
+      (projection): Sequential(
+        (upsample_skip_proj): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+        (conv_skip_proj): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn_skip_proj): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (4): Bottleneck(
+      (layers): Sequential(
+        (conv_down_project): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_down_project): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (abn): Sequential(
+          (0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (conv_up_project): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (abn_up_project): Sequential(
+          (0): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (1): ReLU(inplace=True)
+        )
+        (dropout): Dropout2d(p=0.0, inplace=False)
+      )
+      (projection): Sequential(
+        (upsample_skip_proj): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+        (conv_skip_proj): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn_skip_proj): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+  )
+  (upsample_adds): ModuleList(
+    (0): UpsamplingAdd(
+      (upsample_layer): Sequential(
+        (0): Upsample(scale_factor=2.0, mode=bilinear)
+        (1): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): UpsamplingAdd(
+      (upsample_layer): Sequential(
+        (0): Upsample(scale_factor=2.0, mode=bilinear)
+        (1): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (2): UpsamplingAdd(
+      (upsample_layer): Sequential(
+        (0): Upsample(scale_factor=2.0, mode=bilinear)
+        (1): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (3): UpsamplingAdd(
+      (upsample_layer): Sequential(
+        (0): Upsample(scale_factor=2.0, mode=bilinear)
+        (1): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (4): UpsamplingAdd(
+      (upsample_layer): Sequential(
+        (0): Upsample(scale_factor=2.0, mode=bilinear)
+        (1): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+  )
+  (dense_decoder): CVT_Decoder(
+    (layers): Sequential(
+      (0): CVT_DecoderBlock(
+        (conv): Sequential(
+          (0): Upsample(scale_factor=2.0, mode=bilinear)
+          (1): Conv2d(256, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (3): ReLU(inplace=True)
+          (4): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (5): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (up): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1))
+        (relu): ReLU(inplace=True)
+      )
+      (1): CVT_DecoderBlock(
+        (conv): Sequential(
+          (0): Upsample(scale_factor=2.0, mode=bilinear)
+          (1): Conv2d(256, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (3): ReLU(inplace=True)
+          (4): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (5): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+        (up): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1))
+      )
+    )
+  )
+  (mode_fuser): Sequential(
+    (0): Linear(in_features=256, out_features=256, bias=True)
+    (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+    (2): ReLU(inplace=True)
+  )
+  (multi_query_fuser): Sequential(
+    (0): Linear(in_features=768, out_features=512, bias=True)
+    (1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+    (2): ReLU(inplace=True)
+    (3): Linear(in_features=512, out_features=256, bias=True)
+  )
+  (query_to_occ_feat): MLP(
+    (layers): ModuleList(
+      (0): Linear(in_features=256, out_features=256, bias=True)
+      (1): Linear(in_features=256, out_features=256, bias=True)
+      (2): Linear(in_features=256, out_features=256, bias=True)
+    )
+  )
+  (temporal_mlp_for_mask): MLP(
+    (layers): ModuleList(
+      (0): Linear(in_features=256, out_features=256, bias=True)
+      (1): Linear(in_features=256, out_features=256, bias=True)
+      (2): Linear(in_features=256, out_features=256, bias=True)
+    )
+  )
+)

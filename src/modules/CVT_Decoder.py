@@ -1,11 +1,12 @@
-import CVT_DecoderBlock
+from .CVT_DecoderBlock import CVT_DecoderBlock
 import torch.utils.checkpoint as checkpoint
 import torch.nn.functional as F
 import torch.nn as nn
 from einops import rearrange
 from src.utils.builder import build_conv_layer
 from collections import OrderedDict
-import ConvModule
+from .ConvModule import ConvModule
+
 
 class CVT_Decoder(nn.Module):
     def __init__(self, dim, blocks, residual=True, factor=2, upsample=True, use_checkpoint=False, init_cfg=None):

@@ -3,7 +3,8 @@ import warnings
 import torch.nn as nn
 
 #from ..utils import constant_init, kaiming_init
-from torch.nn.modules.batchnorm import _BatchNorm, _InstanceNorm
+from torch.nn.modules.batchnorm import _BatchNorm
+from torch.nn.modules.instancenorm import _InstanceNorm
 from src.utils.builder import build_activation_layer, build_conv_layer, build_norm_layer, build_padding_layer
 
 
@@ -137,7 +138,7 @@ class ConvModule(nn.Module):
                 norm_channels = out_channels
             else:
                 norm_channels = in_channels
-            self.norm_name, norm = build_norm_layer(norm_cfg, norm_channels)
+            self.norm_name, norm = build_norm_layer(norm_cfg, norm_channels, name_flag=True)
             self.add_module(self.norm_name, norm)
             if self.with_bias:
                 if isinstance(norm, (_BatchNorm, _InstanceNorm)):

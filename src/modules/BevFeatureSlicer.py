@@ -1,10 +1,13 @@
+import torch.nn as nn
+import torch
+import torch.functional as F
 from src.utils.utils import calculate_birds_eye_view_parameters
 
 # Grid sampler
 # Sample a smaller receptive-field bev from larger one
 class BevFeatureSlicer(nn.Module):
     def __init__(self, grid_conf, map_grid_conf):
-        super().__init__()
+        super(BevFeatureSlicer, self).__init__()
         if grid_conf == map_grid_conf:
             self.identity_mapping = True
         else:

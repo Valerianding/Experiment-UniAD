@@ -1,6 +1,6 @@
 import torch.nn as nn
 from collections import OrderedDict
-import Interpolate
+from . import Interpolate
 
 
 

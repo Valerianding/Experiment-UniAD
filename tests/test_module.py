@@ -31,3 +31,13 @@ def test_PansegformerHead():
     #     pc_range=pc_range,
     #     with_box_refine=with_box_refine, 
     # )
+
+
+def test_occ_head():
+    from src.occ_head.occ_head import OccHead
+    cfg = {'type': 'OccHead', 'grid_conf': {'xbound': [-50.0, 50.0, 0.5], 'ybound': [-50.0, 50.0, 0.5], 'zbound': [-10.0, 10.0, 20.0]}, 'ignore_index': 255, 'bev_proj_dim': 256, 'bev_proj_nlayers': 4, 'attn_mask_thresh': 0.3, 'transformer_decoder': {'type': 'DetrTransformerDecoder', 'return_intermediate': True, 'num_layers': 5, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': {'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'attn_drop': 0.0, 'proj_drop': 0.0, 'dropout_layer': None, 'batch_first': False}, 'ffn_cfgs': {'type': 'FFN', 'embed_dims': 256, 'feedforward_channels': 2048, 'num_fcs': 2, 'act_cfg': {'type': 'ReLU', 'inplace': True}, 'ffn_drop': 0.0, 'dropout_layer': None, 'add_identity': True}, 'feedforward_channels': 2048, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}, 'init_cfg': None}, 'query_dim': 256, 'query_mlp_layers': 3, 'aux_loss_weight': 1.0, 'loss_mask': {'type': 'FieryBinarySegmentationLoss', 'use_top_k': True, 'top_k_ratio': 0.25, 'future_discount': 0.95, 'loss_weight': 5.0, 'ignore_index': 255}, 'loss_dice': {'type': 'DiceLossWithMasks', 'use_sigmoid': True, 'activate': True, 'reduction': 'mean', 'naive_dice': True, 'eps': 1.0, 'ignore_index': 255, 'loss_weight': 1.0}, 'pan_eval': True, 'test_seg_thresh': 0.1, 'test_with_track_score': True}
+    cfg.pop('type')
+    occhead_instance = OccHead(**cfg)
+    print(occhead_instance)
+
+test_occ_head()
