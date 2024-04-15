@@ -77,6 +77,14 @@ def build_attention(cfg):
         from src.seg_head.multi_head_attention import MultiheadAttention
         attention = MultiheadAttention(**cfg_).to("cuda")
         return attention
+    elif type == "MotionDeformableAttention":
+        from src.motion_head.motion_deformable_attn import MotionDeformableAttention
+        attention = MotionDeformableAttention(**cfg_).to("cuda")
+        return attention
+    elif type == "CustomMSDeformableAttention":
+        from src.bevformer.CustomMSDeformableAttention import CustomMSDeformableAttention
+        attention = CustomMSDeformableAttention(**cfg_).to("cuda")
+        return attention
     else:
         assert False, f"{type} is not supported"
 
@@ -124,6 +132,10 @@ def build_transformer_layer(cfg):
         from src.seg_head.transformer import DetrTransformerDecoderLayer
         layer = DetrTransformerDecoderLayer(**cfg_).to("cuda")
         return layer
+    elif type == "MotionTransformerAttentionLayer":
+        from src.motion_head.motion_deformable_attn import MotionTransformerAttentionLayer
+        layer = MotionTransformerAttentionLayer(**cfg_).to("cuda")
+        return layer
     else:
         assert False, f"{type} is not supported!"
     
@@ -142,6 +154,14 @@ def build_transformer_layer_sequence(cfg):
     elif type == "DeformableDetrTransformerDecoder":
         from src.seg_head.transformer import DeformableDetrTransformerDecoder
         decoder = DeformableDetrTransformerDecoder(**cfg_).to("cuda")
+        return decoder
+    elif type == "MotionTransformerDecoder":
+        from src.modules.motion_modules import MotionTransformerDecoder
+        decoder = MotionTransformerDecoder(**cfg_).to("cuda")
+        return decoder
+    elif type == "DetectionTransformerDecoder":
+        from src.bevformer.CustomMSDeformableAttention import DetectionTransformerDecoder
+        decoder = DetectionTransformerDecoder(**cfg_).to("cuda")
         return decoder
     else:
         assert False
