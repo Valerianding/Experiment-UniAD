@@ -3,9 +3,15 @@ import inspect
 import logging
 import numpy as np
 import importlib
+import warnings
+import copy
 import torch.distributed as dist
 from torch import nn
 from addict import Dict
+from abc import ABCMeta
+from logging import FileHandler
+from collections import defaultdict
+
 if torch.__version__ == 'parrots':
     TORCH_VERSION = torch.__version__
 else:
@@ -52,6 +58,22 @@ def xavier_init(module, gain=1, bias=0, distribution='normal'):
     if hasattr(module, 'bias') and module.bias is not None:
         nn.init.constant_(module.bias, bias)
         
+def kaiming_init(module,
+                 a=0,
+                 mode='fan_out',
+                 nonlinearity='relu',
+                 bias=0,
+                 distribution='normal'):
+    assert distribution in ['uniform', 'normal']
+    if hasattr(module, 'weight') and module.weight is not None:
+        if distribution == 'uniform':
+            nn.init.kaiming_uniform_(
+                module.weight, a=a, mode=mode, nonlinearity=nonlinearity)
+        else:
+            nn.init.kaiming_normal_(
+                module.weight, a=a, mode=mode, nonlinearity=nonlinearity)
+    if hasattr(module, 'bias') and module.bias is not None:
+        nn.init.constant_(module.bias, bias)
         
 def load_ext(name,funcs):
     ext = importlib.import_module("ops")

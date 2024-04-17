@@ -9,7 +9,7 @@ def test_SegDETRHead():
     
 
 def test_PansegformerHead():
-    args = None
+    args = ()
     bev_h = 200
     bev_w = 200
     canvas_size = (200,200)
@@ -23,14 +23,21 @@ def test_PansegformerHead():
     train_cfg = {'assigner': {'type': 'HungarianAssigner', 'cls_cost': {'type': 'FocalLossCost', 'weight': 2.0}, 'reg_cost': {'type': 'BBoxL1Cost', 'weight': 5.0, 'box_format': 'xywh'}, 'iou_cost': {'type': 'IoUCost', 'iou_mode': 'giou', 'weight': 2.0}}, 'assigner_with_mask': {'type': 'HungarianAssigner_multi_info', 'cls_cost': {'type': 'FocalLossCost', 'weight': 2.0}, 'reg_cost': {'type': 'BBoxL1Cost', 'weight': 5.0, 'box_format': 'xywh'}, 'iou_cost': {'type': 'IoUCost', 'iou_mode': 'giou', 'weight': 2.0}, 'mask_cost': {'type': 'DiceCost', 'weight': 2.0}}, 'sampler': {'type': 'PseudoSampler'}, 'sampler_with_mask': {'type': 'PseudoSampler_segformer'}}
     kwargs = {'num_query': 300, 'num_classes': 4, 'num_things_classes': 3, 'num_stuff_classes': 1, 'in_channels': 2048, 'sync_cls_avg_factor': True, 'positional_encoding': {'type': 'SinePositionalEncoding', 'num_feats': 128, 'normalize': True, 'offset': -0.5}, 'loss_cls': {'type': 'FocalLoss', 'use_sigmoid': True, 'gamma': 2.0, 'alpha': 0.25, 'loss_weight': 2.0}, 'loss_bbox': {'type': 'L1Loss', 'loss_weight': 5.0}, 'loss_iou': {'type': 'GIoULoss', 'loss_weight': 2.0}}
     from src.seg_head.panseg_head import PansegformerHead
-    # head = PansegformerHead(
-    #     args,
-    #     bev_h=bev_h,
-    #     bev_w=bev_w,
-    #     canvas_size=canvas_size,
-    #     pc_range=pc_range,
-    #     with_box_refine=with_box_refine, 
-    # )
+    head = PansegformerHead(
+        args,
+        bev_h=bev_h,
+        bev_w=bev_w,
+        canvas_size=canvas_size,
+        pc_range=pc_range,
+        with_box_refine=with_box_refine, 
+        as_two_stage=as_two_stage,
+        transformer=transformer,
+        thing_transformer_head=thing_transformer_head,
+        stuff_transformer_head=stuff_transformer_head,
+        loss_mask=loss_mask,
+        train_cfg=train_cfg,
+        kwargs=kwargs
+    )
     
 def test_BEVFormerEncoder():
     from src.bevformer.custom_encoder import BEVFormerEncoder

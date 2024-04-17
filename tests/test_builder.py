@@ -53,4 +53,10 @@ def test_build_backbone():
     cfg = {'type': 'ResNet', 'depth': 101, 'num_stages': 4, 'out_indices': (1, 2, 3), 'frozen_stages': 4, 'norm_cfg': {'type': 'BN2d', 'requires_grad': False}, 'norm_eval': True, 'style': 'caffe', 'dcn': {'type': 'DCNv2', 'deform_groups': 1, 'fallback_on_stride': False}, 'stage_with_dcn': (False, False, True, True)}
     resnet = build_backbone(cfg)
     
+
+def test_build_neck():
+    from src.utils.builder import build_neck
+    cfg = {'type': 'FPN', 'in_channels': [512, 1024, 2048], 'out_channels': 256, 'start_level': 0, 'add_extra_convs': 'on_output', 'num_outs': 4, 'relu_before_extra_convs': True}
+    build_neck(cfg)
+    
     

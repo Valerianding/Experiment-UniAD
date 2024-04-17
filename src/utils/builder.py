@@ -1,5 +1,9 @@
 import torch
 from torch import nn
+
+def build_padding_layer(cfg, padding):
+    assert False, f"not implemented"
+    
 def build_plugin_layer(cfg, *args, **kwargs):
     if not isinstance(cfg,dict):
         raise TypeError('cfg must be a dict')
@@ -158,12 +162,18 @@ def build_transformer(cfg):
     cfg_  = cfg.copy()
     type = cfg_['type']
     cfg_.pop('type')
-    assert type == "SegDeformableTransformer", f"{type} is not supported!"
-    from src.seg_head.seg_deformable_transformer import SegDeformableTransformer
-    transformer = SegDeformableTransformer(**cfg_).to("cuda")
-    return transformer
+    if type == "SegDeformableTransformer":
+        from src.seg_head.seg_deformable_transformer import SegDeformableTransformer
+        transformer = SegDeformableTransformer(**cfg_).to("cuda")
+        return transformer
+    elif type == "SegMaskHead":
+        from src.seg_head.seg_mask_head import SegMaskHead
+        segMaskHead = SegMaskHead(**cfg_).to("cuda")
+        return segMaskHead
+    else:
+        assert False, f"{type} not supported"
 
-#{'type': 'SinePositionalEncoding', 'num_feats': 128, 'normalize': True, 'offset': -0.5}
+
 def build_positional_encoding(cfg):
     cfg_ = cfg.copy()
     type = cfg_['type']
@@ -171,12 +181,13 @@ def build_positional_encoding(cfg):
     assert type == "SinePositionalEncoding"
     from src.modules.positional_encoding import SinePositionalEncoding
     encoding = SinePositionalEncoding(**cfg_).to("cuda")
+    return encoding
 
 
 def get_transformer():
     cfg = {'type': 'SegDeformableTransformer', 'encoder': {'type': 'DetrTransformerEncoder', 'num_layers': 6, 'transformerlayers': {'type': 'BaseTransformerLayer', 'attn_cfgs': {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}, 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'ffn', 'norm')}}, 'decoder': {'type': 'DeformableDetrTransformerDecoder', 'num_layers': 6, 'return_intermediate': True, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': [{'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'dropout': 0.1}, {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}}
-    transformer = build_transformer(cfg)
-
+    transformer = build_transformer(cfg).to("cuda")
+    return transformer
 
 def build_backbone(cfg):
     cfg_ = cfg.copy()
@@ -186,6 +197,15 @@ def build_backbone(cfg):
     from src.modules.resnet import ResNet
     resnet = ResNet(**cfg_).to("cuda")
     return resnet
+
+def build_neck(cfg):
+    cfg_ = cfg.copy()
+    type = cfg_['type']
+    cfg_.pop('type')
+    assert type == "FPN"
+    from src.modules.fpn import FPN
+    fpn = FPN(**cfg_).to("cuda")
+    return fpn
 
 def build_bev_encoder():
     from src.bevformer.custom_encoder import BEVFormerEncoder
