@@ -31,7 +31,7 @@ def test_motion_head():
 
     
 def test_bevformer_decoder():
-    from src.bevformer.CustomMSDeformableAttention import DetectionTransformerDecoder, CustomMSDeformableAttention
+    from src.track_head.CustomMSDeformableAttention import DetectionTransformerDecoder, CustomMSDeformableAttention
     from src.utils.builder import build_transformer_layer_sequence
     cfg = {'type': 'DetectionTransformerDecoder', 'num_layers': 6, 'return_intermediate': True, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': [{'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'dropout': 0.1}, {'type': 'CustomMSDeformableAttention', 'embed_dims': 256, 'num_levels': 1}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}
     decoder = build_transformer_layer_sequence(cfg)

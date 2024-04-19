@@ -128,7 +128,7 @@ def build_attention(cfg):
         attention = MotionDeformableAttention(**cfg_).to("cuda")
         return attention
     elif type == "CustomMSDeformableAttention":
-        from src.bevformer.CustomMSDeformableAttention import CustomMSDeformableAttention
+        from src.track_head.CustomMSDeformableAttention import CustomMSDeformableAttention
         attention = CustomMSDeformableAttention(**cfg_).to("cuda")
         return attention
     else:
@@ -206,7 +206,7 @@ def build_transformer_layer_sequence(cfg):
         decoder = MotionTransformerDecoder(**cfg_).to("cuda")
         return decoder
     elif type == "DetectionTransformerDecoder":
-        from src.bevformer.CustomMSDeformableAttention import DetectionTransformerDecoder
+        from src.track_head.CustomMSDeformableAttention import DetectionTransformerDecoder
         decoder = DetectionTransformerDecoder(**cfg_).to("cuda")
         return decoder
     else:
