@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 
+
 def build_padding_layer(cfg, padding):
     assert False, f"not implemented"
     
@@ -44,7 +45,7 @@ def build_norm_layer(cfg, num_features, postfix=''):
     
     requires_grad = cfg_.pop('requires_grad', True)
     cfg_.setdefault('eps', 1e-5)
-    
+
     from src.utils.utils import infer_abbr
     abbr = None
     name = None
@@ -67,6 +68,35 @@ def build_norm_layer(cfg, num_features, postfix=''):
     name = abbr + str(postfix)
     return name, layer
 
+def build_padding_layer(cfg, *args, **kwargs):
+    """Build padding layer.
+
+    Args:
+        cfg (None or dict): The padding layer config, which should contain:
+            - type (str): Layer type.
+            - layer args: Args needed to instantiate a padding layer.
+
+    Returns:
+        nn.Module: Created padding layer.
+    """
+    if not isinstance(cfg, dict):
+        raise TypeError('cfg must be a dict')
+    if 'type' not in cfg:
+        raise KeyError('the cfg dict must contain the key "type"')
+
+    cfg_ = cfg.copy()
+    padding_type = cfg_.pop('type')
+    if padding_type == 'zero':
+        padding_layer = nn.ZeroPad2d 
+    elif padding_type == 'reflect':
+        padding_layer = nn.ReflectionPad2d
+    elif padding_type == 'replicate':
+        padding_layer = nn.ReplicationPad2d
+    layer = padding_layer(*args, **kwargs, **cfg_)
+
+    return layer
+
+    
 def build_attention(cfg):
     assert isinstance(cfg,dict)
     
@@ -92,6 +122,14 @@ def build_attention(cfg):
     elif type == "MultiheadAttention":
         from src.seg_head.multi_head_attention import MultiheadAttention
         attention = MultiheadAttention(**cfg_).to("cuda")
+        return attention
+    elif type == "MotionDeformableAttention":
+        from src.motion_head.motion_deformable_attn import MotionDeformableAttention
+        attention = MotionDeformableAttention(**cfg_).to("cuda")
+        return attention
+    elif type == "CustomMSDeformableAttention":
+        from src.bevformer.CustomMSDeformableAttention import CustomMSDeformableAttention
+        attention = CustomMSDeformableAttention(**cfg_).to("cuda")
         return attention
     else:
         assert False, f"{type} is not supported"
@@ -140,6 +178,10 @@ def build_transformer_layer(cfg):
         from src.seg_head.transformer import DetrTransformerDecoderLayer
         layer = DetrTransformerDecoderLayer(**cfg_).to("cuda")
         return layer
+    elif type == "MotionTransformerAttentionLayer":
+        from src.motion_head.motion_deformable_attn import MotionTransformerAttentionLayer
+        layer = MotionTransformerAttentionLayer(**cfg_).to("cuda")
+        return layer
     else:
         assert False, f"{type} is not supported!"
     
@@ -151,9 +193,21 @@ def build_transformer_layer_sequence(cfg):
         from src.seg_head.transformer import DetrTransformerEncoder
         encoder = DetrTransformerEncoder(**cfg_).to("cuda")
         return encoder
+    elif type == "DetrTransformerDecoder":
+        from src.seg_head.transformer import DetrTransformerDecoder
+        decoder = DetrTransformerDecoder(**cfg_).to("cuda")
+        return decoder
     elif type == "DeformableDetrTransformerDecoder":
         from src.seg_head.transformer import DeformableDetrTransformerDecoder
         decoder = DeformableDetrTransformerDecoder(**cfg_).to("cuda")
+        return decoder
+    elif type == "MotionTransformerDecoder":
+        from src.modules.motion_modules import MotionTransformerDecoder
+        decoder = MotionTransformerDecoder(**cfg_).to("cuda")
+        return decoder
+    elif type == "DetectionTransformerDecoder":
+        from src.bevformer.CustomMSDeformableAttention import DetectionTransformerDecoder
+        decoder = DetectionTransformerDecoder(**cfg_).to("cuda")
         return decoder
     else:
         assert False
@@ -189,6 +243,7 @@ def get_transformer():
     transformer = build_transformer(cfg).to("cuda")
     return transformer
 
+  
 def build_backbone(cfg):
     cfg_ = cfg.copy()
     type = cfg_['type']
