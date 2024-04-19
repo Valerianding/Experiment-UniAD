@@ -2,8 +2,8 @@ import torch
 import math
 from torch import nn
 import warnings
-from src.bevformer.multi_scale_deformable_attn_function import MultiScaleDeformableAttnFunction_fp32
-from src.bevformer.multi_scale_deformable_attn_function import multi_scale_deformable_attn_pytorch
+from src.track_head.multi_scale_deformable_attn_function import MultiScaleDeformableAttnFunction_fp32
+from src.track_head.multi_scale_deformable_attn_function import multi_scale_deformable_attn_pytorch
 from src.utils.utils import constant_init, xavier_init
 
 class TemporalSelfAttention(nn.Module):

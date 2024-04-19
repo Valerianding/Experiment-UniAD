@@ -78,8 +78,6 @@ class SegDETRHead(nn.Module):
         #hard-code way
         self.cls_out_channels = 3
         
-        import pdb
-        pdb.set_trace()
         self.act_cfg = transformer.get('act_cfg',
                                        dict(type='ReLU', inplace=True))
         self.activate = build_activation_layer(self.act_cfg)

@@ -8,7 +8,6 @@ from src.seg_head.seg_utils import IOU,bbox_cxcywh_to_xyxy
 from src.utils.utils import inverse_sigmoid, bias_init_with_prob, constant_init, Linear
 from src.utils.builder import build_transformer
 
-
 class PansegformerHead(SegDETRHead):
     def __init__(
             self,
@@ -339,8 +338,6 @@ class PansegformerHead(SegDETRHead):
                     lane_score[labels_all[i], _mask] = masks_all[i][_mask]
                     results[1, _mask] = id_unique
                     id_unique += 1
-            import pdb
-            pdb.set_trace()
             file_name = img_metas[img_id]['pts_filename'].split('/')[-1].split('.')[0]
             panoptic_list.append(
                 (results.permute(1, 2, 0).cpu().numpy(), file_name, ori_shape))

@@ -74,15 +74,15 @@ def build_attention(cfg):
     type = cfg_['type']
     cfg_.pop('type')
     if type == 'TemporalSelfAttention':
-        from src.bevformer.temporal_self_attention import TemporalSelfAttention
+        from src.track_head.temporal_self_attention import TemporalSelfAttention
         attention = TemporalSelfAttention(**cfg_).to("cuda")
         return attention
     elif type == 'SpatialCrossAttention':
-        from src.bevformer.spatial_cross_attention import SpatialCrossAttention
+        from src.track_head.spatial_cross_attention import SpatialCrossAttention
         attention = SpatialCrossAttention(**cfg_).to("cuda")
         return attention
     elif type == 'MSDeformableAttention3D':
-        from src.bevformer.spatial_cross_attention import MSDeformableAttention3D
+        from src.track_head.spatial_cross_attention import MSDeformableAttention3D
         attention = MSDeformableAttention3D(**cfg_).to("cuda")
         return attention
     elif type == "MultiScaleDeformableAttention":
@@ -129,7 +129,7 @@ def build_transformer_layer(cfg):
     type = cfg_['type']
     cfg_.pop('type')
     if type == "BEVFormerLayer":
-        from src.bevformer.custom_encoder import BEVFormerLayer
+        from src.track_head.custom_encoder import BEVFormerLayer
         layer = BEVFormerLayer(**cfg_).to("cuda")
         return layer
     elif type == "BaseTransformerLayer":
@@ -208,7 +208,19 @@ def build_neck(cfg):
     return fpn
 
 def build_bev_encoder():
-    from src.bevformer.custom_encoder import BEVFormerEncoder
+    from src.track_head.custom_encoder import BEVFormerEncoder
     pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
     encoder = BEVFormerEncoder(pc_range=pc_range,num_points_in_pillar=4)
     return encoder
+
+
+def build_head(cfg):
+    cfg_ = cfg.copy()
+    type = cfg_['type']
+    cfg_.pop('type')
+    if type == "PanSegHead":
+        from src.seg_head.panseg_head import PansegformerHead
+        head = PansegformerHead(**cfg_).to("cuda")
+        return head
+    else:
+        assert False,f"{type} not supported"

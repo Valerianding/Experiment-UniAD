@@ -63,7 +63,7 @@ def img_backbone_compile():
     
     resnet.eval()
     
-    import torch._dynamo
+    # import torch._dynamo
     torch._dynamo.reset()
     
     opt_resnet = torch.compile(resnet,mode="reduce-overhead")
@@ -202,4 +202,11 @@ if __name__ == "__main__":
     img_metas = seg_head_input['img_metas']
     rescale = seg_head_input['rescale']
     
-    head.forward_test(bev_embed,gt_lane_labels,gt_lane_masks,img_metas,rescale)
+    import time
+    for _ in range(100):
+        torch.cuda.synchronize()
+        start = time.perf_counter()
+        results_seg = head.forward_test(bev_embed,gt_lane_labels,gt_lane_masks,img_metas,rescale)
+        torch.cuda.synchronize()
+        end = time.perf_counter()
+        print(f"seg-head:{(end - start) * 1000}ms")
