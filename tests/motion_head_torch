@@ -1,0 +1,338 @@
+MotionHead(
+  (learnable_motion_query_embedding): Embedding(24, 256)
+  (motionformer): MotionTransformerDecoder(
+    (intention_interaction_layers): IntentionInteraction(
+      (interaction_transformer): TransformerEncoderLayer(
+        (self_attn): MultiheadAttention(
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+        )
+        (linear1): Linear(in_features=256, out_features=512, bias=True)
+        (dropout): Dropout(p=0.1, inplace=False)
+        (linear2): Linear(in_features=512, out_features=256, bias=True)
+        (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        (dropout1): Dropout(p=0.1, inplace=False)
+        (dropout2): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (track_agent_interaction_layers): ModuleList(
+      (0): TrackAgentInteraction(
+        (interaction_transformer): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (multihead_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (linear1): Linear(in_features=256, out_features=512, bias=True)
+          (dropout): Dropout(p=0.1, inplace=False)
+          (linear2): Linear(in_features=512, out_features=256, bias=True)
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm3): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.1, inplace=False)
+          (dropout2): Dropout(p=0.1, inplace=False)
+          (dropout3): Dropout(p=0.1, inplace=False)
+        )
+      )
+      (1): TrackAgentInteraction(
+        (interaction_transformer): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (multihead_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (linear1): Linear(in_features=256, out_features=512, bias=True)
+          (dropout): Dropout(p=0.1, inplace=False)
+          (linear2): Linear(in_features=512, out_features=256, bias=True)
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm3): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.1, inplace=False)
+          (dropout2): Dropout(p=0.1, inplace=False)
+          (dropout3): Dropout(p=0.1, inplace=False)
+        )
+      )
+      (2): TrackAgentInteraction(
+        (interaction_transformer): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (multihead_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (linear1): Linear(in_features=256, out_features=512, bias=True)
+          (dropout): Dropout(p=0.1, inplace=False)
+          (linear2): Linear(in_features=512, out_features=256, bias=True)
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm3): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.1, inplace=False)
+          (dropout2): Dropout(p=0.1, inplace=False)
+          (dropout3): Dropout(p=0.1, inplace=False)
+        )
+      )
+    )
+    (map_interaction_layers): ModuleList(
+      (0): MapInteraction(
+        (interaction_transformer): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (multihead_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (linear1): Linear(in_features=256, out_features=512, bias=True)
+          (dropout): Dropout(p=0.1, inplace=False)
+          (linear2): Linear(in_features=512, out_features=256, bias=True)
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm3): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.1, inplace=False)
+          (dropout2): Dropout(p=0.1, inplace=False)
+          (dropout3): Dropout(p=0.1, inplace=False)
+        )
+      )
+      (1): MapInteraction(
+        (interaction_transformer): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (multihead_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (linear1): Linear(in_features=256, out_features=512, bias=True)
+          (dropout): Dropout(p=0.1, inplace=False)
+          (linear2): Linear(in_features=512, out_features=256, bias=True)
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm3): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.1, inplace=False)
+          (dropout2): Dropout(p=0.1, inplace=False)
+          (dropout3): Dropout(p=0.1, inplace=False)
+        )
+      )
+      (2): MapInteraction(
+        (interaction_transformer): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (multihead_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (linear1): Linear(in_features=256, out_features=512, bias=True)
+          (dropout): Dropout(p=0.1, inplace=False)
+          (linear2): Linear(in_features=512, out_features=256, bias=True)
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm3): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.1, inplace=False)
+          (dropout2): Dropout(p=0.1, inplace=False)
+          (dropout3): Dropout(p=0.1, inplace=False)
+        )
+      )
+    )
+    (bev_interaction_layers): ModuleList(
+      (0): MotionTransformerAttentionLayer(
+        (attentions): ModuleList(
+          (0): MotionDeformableAttention(
+            (dropout): Dropout(p=0.1, inplace=False)
+            (sampling_offsets): Linear(in_features=256, out_features=768, bias=True)
+            (attention_weights): Linear(in_features=256, out_features=384, bias=True)
+            (value_proj): Linear(in_features=256, out_features=256, bias=True)
+            (output_proj): Sequential(
+              (0): Linear(in_features=3072, out_features=256, bias=True)
+              (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+              (2): ReLU(inplace=True)
+            )
+          )
+        )
+        (ffns): ModuleList(
+          (0): FFN(
+            (activate): ReLU(inplace=True)
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=512, bias=True)
+                (1): ReLU(inplace=True)
+                (2): Dropout(p=0, inplace=False)
+              )
+              (1): Linear(in_features=512, out_features=256, bias=True)
+              (2): Dropout(p=0, inplace=False)
+            )
+            (dropout_layer): Identity()
+          )
+        )
+        (norms): ModuleList(
+          (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+      (1): MotionTransformerAttentionLayer(
+        (attentions): ModuleList(
+          (0): MotionDeformableAttention(
+            (dropout): Dropout(p=0.1, inplace=False)
+            (sampling_offsets): Linear(in_features=256, out_features=768, bias=True)
+            (attention_weights): Linear(in_features=256, out_features=384, bias=True)
+            (value_proj): Linear(in_features=256, out_features=256, bias=True)
+            (output_proj): Sequential(
+              (0): Linear(in_features=3072, out_features=256, bias=True)
+              (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+              (2): ReLU(inplace=True)
+            )
+          )
+        )
+        (ffns): ModuleList(
+          (0): FFN(
+            (activate): ReLU(inplace=True)
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=512, bias=True)
+                (1): ReLU(inplace=True)
+                (2): Dropout(p=0, inplace=False)
+              )
+              (1): Linear(in_features=512, out_features=256, bias=True)
+              (2): Dropout(p=0, inplace=False)
+            )
+            (dropout_layer): Identity()
+          )
+        )
+        (norms): ModuleList(
+          (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+      (2): MotionTransformerAttentionLayer(
+        (attentions): ModuleList(
+          (0): MotionDeformableAttention(
+            (dropout): Dropout(p=0.1, inplace=False)
+            (sampling_offsets): Linear(in_features=256, out_features=768, bias=True)
+            (attention_weights): Linear(in_features=256, out_features=384, bias=True)
+            (value_proj): Linear(in_features=256, out_features=256, bias=True)
+            (output_proj): Sequential(
+              (0): Linear(in_features=3072, out_features=256, bias=True)
+              (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+              (2): ReLU(inplace=True)
+            )
+          )
+        )
+        (ffns): ModuleList(
+          (0): FFN(
+            (activate): ReLU(inplace=True)
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=512, bias=True)
+                (1): ReLU(inplace=True)
+                (2): Dropout(p=0, inplace=False)
+              )
+              (1): Linear(in_features=512, out_features=256, bias=True)
+              (2): Dropout(p=0, inplace=False)
+            )
+            (dropout_layer): Identity()
+          )
+        )
+        (norms): ModuleList(
+          (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+    (static_dynamic_fuser): Sequential(
+      (0): Linear(in_features=512, out_features=512, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=512, out_features=256, bias=True)
+    )
+    (dynamic_embed_fuser): Sequential(
+      (0): Linear(in_features=768, out_features=512, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=512, out_features=256, bias=True)
+    )
+    (in_query_fuser): Sequential(
+      (0): Linear(in_features=512, out_features=512, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=512, out_features=256, bias=True)
+    )
+    (out_query_fuser): Sequential(
+      (0): Linear(in_features=1024, out_features=512, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=512, out_features=256, bias=True)
+    )
+  )
+  (layer_track_query_fuser): Sequential(
+    (0): Linear(in_features=1536, out_features=256, bias=True)
+    (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+    (2): ReLU(inplace=True)
+  )
+  (agent_level_embedding_layer): Sequential(
+    (0): Linear(in_features=256, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+  (scene_level_ego_embedding_layer): Sequential(
+    (0): Linear(in_features=256, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+  (scene_level_offset_embedding_layer): Sequential(
+    (0): Linear(in_features=256, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+  (boxes_query_embedding_layer): Sequential(
+    (0): Linear(in_features=256, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+  (traj_cls_branches): ModuleList(
+    (0): Sequential(
+      (0): Linear(in_features=256, out_features=256, bias=True)
+      (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (2): ReLU(inplace=True)
+      (3): Linear(in_features=256, out_features=256, bias=True)
+      (4): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (5): ReLU(inplace=True)
+      (6): Linear(in_features=256, out_features=1, bias=True)
+    )
+    (1): Sequential(
+      (0): Linear(in_features=256, out_features=256, bias=True)
+      (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (2): ReLU(inplace=True)
+      (3): Linear(in_features=256, out_features=256, bias=True)
+      (4): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (5): ReLU(inplace=True)
+      (6): Linear(in_features=256, out_features=1, bias=True)
+    )
+    (2): Sequential(
+      (0): Linear(in_features=256, out_features=256, bias=True)
+      (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (2): ReLU(inplace=True)
+      (3): Linear(in_features=256, out_features=256, bias=True)
+      (4): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (5): ReLU(inplace=True)
+      (6): Linear(in_features=256, out_features=1, bias=True)
+    )
+  )
+  (traj_reg_branches): ModuleList(
+    (0): Sequential(
+      (0): Linear(in_features=256, out_features=256, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=256, out_features=256, bias=True)
+      (3): ReLU()
+      (4): Linear(in_features=256, out_features=60, bias=True)
+    )
+    (1): Sequential(
+      (0): Linear(in_features=256, out_features=256, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=256, out_features=256, bias=True)
+      (3): ReLU()
+      (4): Linear(in_features=256, out_features=60, bias=True)
+    )
+    (2): Sequential(
+      (0): Linear(in_features=256, out_features=256, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=256, out_features=256, bias=True)
+      (3): ReLU()
+      (4): Linear(in_features=256, out_features=60, bias=True)
+    )
+  )
+)

@@ -22,7 +22,6 @@ class BaseTransformerLayer(nn.Module):
                  init_cfg=None,
                  batch_first=False,
                  **kwargs):
-
         deprecated_args = dict(
             feedforward_channels='feedforward_channels',
             ffn_dropout='ffn_drop',
@@ -77,7 +76,6 @@ class BaseTransformerLayer(nn.Module):
                 index += 1
 
         self.embed_dims = self.attentions[0].embed_dims
-
         self.ffns = ModuleList()
         num_ffns = operation_order.count('ffn')
         if isinstance(ffn_cfgs, dict):
@@ -319,7 +317,6 @@ class DetrTransformerDecoder(TransformerLayerSequence):
                  post_norm_cfg=dict(type='LN'),
                  return_intermediate=False,
                  **kwargs):
-        
         super(DetrTransformerDecoder, self).__init__(*args, **kwargs)
         self.return_intermediate = return_intermediate
         if post_norm_cfg is not None:
