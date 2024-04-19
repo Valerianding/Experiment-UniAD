@@ -248,7 +248,10 @@ class SegDeformableTransformer(Transformer):
                     be returned when `as_two_stage` is True, \
                     otherwise None.
         """
-
+        import pdb
+        import time
+        torch.cuda.synchronize()
+        begin = time.perf_counter()
         assert self.as_two_stage or query_embed is not None
         feat_flatten = []
         mask_flatten = []
@@ -285,6 +288,8 @@ class SegDeformableTransformer(Transformer):
         feat_flatten = feat_flatten.permute(1, 0, 2)  # (H*W, bs, embed_dims)
         lvl_pos_embed_flatten = lvl_pos_embed_flatten.permute(
             1, 0, 2)  # (H*W, bs, embed_dims)
+        torch.cuda.synchronize()
+        start = time.perf_counter()
         memory = self.encoder(query=feat_flatten,
                               key=None,
                               value=None,
@@ -295,6 +300,9 @@ class SegDeformableTransformer(Transformer):
                               level_start_index=level_start_index,
                               valid_ratios=valid_ratios,
                               **kwargs)
+        torch.cuda.synchronize()
+        end = time.perf_counter()
+        print(f"encoder: {(end - start) * 1000}ms")
 
         memory = memory.permute(1, 0, 2)
         bs, _, c = memory.shape
@@ -333,6 +341,8 @@ class SegDeformableTransformer(Transformer):
         query = query.permute(1, 0, 2)
         memory = memory.permute(1, 0, 2)
         query_pos = query_pos.permute(1, 0, 2)
+        torch.cuda.synchronize()
+        start = time.perf_counter()
         inter_states, inter_references = self.decoder(
             query=query,
             key=None,
@@ -345,6 +355,10 @@ class SegDeformableTransformer(Transformer):
             valid_ratios=valid_ratios,
             reg_branches=reg_branches,
             **kwargs)
+        torch.cuda.synchronize()
+        end = time.perf_counter()
+        print(f"decoder: {(end - start) * 1000}ms")
+        print(f"all: {(end - begin) * 1000}ms")
         inter_references_out = inter_references
         if self.as_two_stage:
             return (memory,lvl_pos_embed_flatten,mask_flatten,query_pos), inter_states, init_reference_out,\

@@ -1,26 +1,72 @@
 import torch
 from torch import nn
 
-def build_norm_layer(cfg, num_features, name_flag = False):
+
+def build_padding_layer(cfg, padding):
+    assert False, f"not implemented"
+    
+def build_plugin_layer(cfg, *args, **kwargs):
+    if not isinstance(cfg,dict):
+        raise TypeError('cfg must be a dict')
+    if 'type' not in cfg:
+        raise KeyError('the cfg dict must contain the key "type"')  
+    cfg_ = cfg.copy()
+    layer_type = cfg_.pop('type')
+    assert False, f"build_plugin_layer not supported!"
+
+def build_conv_layer(cfg, *args, **kwargs):
+    if cfg is None:
+        cfg_ = dict(type='Conv2d')
+    else:
+        if not isinstance(cfg,dict):
+            raise TypeError('cfg must be a dict')
+        if 'type' not in cfg:
+            raise KeyError('the cfg dict must contain the key "type"')
+        cfg_ = cfg.copy()
+    layer_type = cfg_.pop('type')
+    if layer_type == "Conv1d":
+        conv_layer = nn.Conv1d(*args,**kwargs,**cfg_).to("cuda")
+        return conv_layer
+    elif layer_type == "Conv2d":
+        conv_layer = nn.Conv2d(*args,**kwargs,**cfg_).to("cuda")
+        return conv_layer
+    elif layer_type == "DCNv2":
+        from src.ops.modulated_deform_conv import ModulatedDeformConv2dPack
+        conv_layer = ModulatedDeformConv2dPack(*args,**kwargs,**cfg_).to("cuda")
+        return conv_layer
+    else:
+        assert False, f"{layer_type} is not supported!"
+        
+    
+def build_norm_layer(cfg, num_features, postfix=''):
     cfg_ = cfg.copy()
     layer_type = cfg_['type']
     cfg_.pop('type')
+    
     requires_grad = cfg_.pop('requires_grad', True)
     cfg_.setdefault('eps', 1e-5)
-    name = 'bn2d'
+
+    from src.utils.utils import infer_abbr
+    abbr = None
+    name = None
     if layer_type == 'LN':
+        assert layer_type == 'LN'
+        abbr = infer_abbr(nn.LayerNorm)
         layer = nn.LayerNorm(num_features, **cfg_).to("cuda")
-        name = 'ln'
     elif layer_type == 'BN2d':
-        layer = nn.BatchNorm2d(num_features, **cfg_).to("cuda")
-        name = 'bn'
+        assert layer_type == "BN2d"
+        abbr = infer_abbr(nn.BatchNorm2d)
+        layer = nn.BatchNorm2d(num_features,**cfg_).to("cuda")
     else:
-        exit(-1)
+        assert False, f"{layer_type} is not supported"
+        
+
     for param in layer.parameters():
         param.requires_grad = requires_grad
-    if name_flag:
-        return name, layer
-    return layer
+        
+    assert isinstance(postfix, (int, str))
+    name = abbr + str(postfix)
+    return name, layer
 
 def build_padding_layer(cfg, *args, **kwargs):
     """Build padding layer.
@@ -58,15 +104,15 @@ def build_attention(cfg):
     type = cfg_['type']
     cfg_.pop('type')
     if type == 'TemporalSelfAttention':
-        from src.bevformer.temporal_self_attention import TemporalSelfAttention
+        from src.track_head.temporal_self_attention import TemporalSelfAttention
         attention = TemporalSelfAttention(**cfg_).to("cuda")
         return attention
     elif type == 'SpatialCrossAttention':
-        from src.bevformer.spatial_cross_attention import SpatialCrossAttention
+        from src.track_head.spatial_cross_attention import SpatialCrossAttention
         attention = SpatialCrossAttention(**cfg_).to("cuda")
         return attention
     elif type == 'MSDeformableAttention3D':
-        from src.bevformer.spatial_cross_attention import MSDeformableAttention3D
+        from src.track_head.spatial_cross_attention import MSDeformableAttention3D
         attention = MSDeformableAttention3D(**cfg_).to("cuda")
         return attention
     elif type == "MultiScaleDeformableAttention":
@@ -121,7 +167,7 @@ def build_transformer_layer(cfg):
     type = cfg_['type']
     cfg_.pop('type')
     if type == "BEVFormerLayer":
-        from src.bevformer.custom_encoder import BEVFormerLayer
+        from src.track_head.custom_encoder import BEVFormerLayer
         layer = BEVFormerLayer(**cfg_).to("cuda")
         return layer
     elif type == "BaseTransformerLayer":
@@ -170,12 +216,18 @@ def build_transformer(cfg):
     cfg_  = cfg.copy()
     type = cfg_['type']
     cfg_.pop('type')
-    assert type == "SegDeformableTransformer", f"{type} is not supported!"
-    from src.seg_head.seg_deformable_transformer import SegDeformableTransformer
-    transformer = SegDeformableTransformer(**cfg_).to("cuda")
-    return transformer
+    if type == "SegDeformableTransformer":
+        from src.seg_head.seg_deformable_transformer import SegDeformableTransformer
+        transformer = SegDeformableTransformer(**cfg_).to("cuda")
+        return transformer
+    elif type == "SegMaskHead":
+        from src.seg_head.seg_mask_head import SegMaskHead
+        segMaskHead = SegMaskHead(**cfg_).to("cuda")
+        return segMaskHead
+    else:
+        assert False, f"{type} not supported"
 
-#{'type': 'SinePositionalEncoding', 'num_feats': 128, 'normalize': True, 'offset': -0.5}
+
 def build_positional_encoding(cfg):
     cfg_ = cfg.copy()
     type = cfg_['type']
@@ -188,14 +240,42 @@ def build_positional_encoding(cfg):
 
 def get_transformer():
     cfg = {'type': 'SegDeformableTransformer', 'encoder': {'type': 'DetrTransformerEncoder', 'num_layers': 6, 'transformerlayers': {'type': 'BaseTransformerLayer', 'attn_cfgs': {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}, 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'ffn', 'norm')}}, 'decoder': {'type': 'DeformableDetrTransformerDecoder', 'num_layers': 6, 'return_intermediate': True, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': [{'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'dropout': 0.1}, {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}}
-    transformer = build_transformer(cfg)
+    transformer = build_transformer(cfg).to("cuda")
     return transformer
 
+  
+def build_backbone(cfg):
+    cfg_ = cfg.copy()
+    type = cfg_['type']
+    cfg_.pop('type')
+    assert type == "ResNet"
+    from src.modules.resnet import ResNet
+    resnet = ResNet(**cfg_).to("cuda")
+    return resnet
+
+def build_neck(cfg):
+    cfg_ = cfg.copy()
+    type = cfg_['type']
+    cfg_.pop('type')
+    assert type == "FPN"
+    from src.modules.fpn import FPN
+    fpn = FPN(**cfg_).to("cuda")
+    return fpn
+
+def build_bev_encoder():
+    from src.track_head.custom_encoder import BEVFormerEncoder
+    pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+    encoder = BEVFormerEncoder(pc_range=pc_range,num_points_in_pillar=4)
+    return encoder
 
 
-def build_conv_layer(cfg, *args, **kwargs):
-    if 'type' in cfg.keys():
-        cfg.pop('type')
-    layer = nn.Conv2d(*args, **kwargs, **cfg)
-
-    return layer
+def build_head(cfg):
+    cfg_ = cfg.copy()
+    type = cfg_['type']
+    cfg_.pop('type')
+    if type == "PanSegHead":
+        from src.seg_head.panseg_head import PansegformerHead
+        head = PansegformerHead(**cfg_).to("cuda")
+        return head
+    else:
+        assert False,f"{type} not supported"
