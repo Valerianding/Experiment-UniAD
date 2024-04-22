@@ -38,10 +38,10 @@ class BaseDetector(nn.Module, metaclass=ABCMeta):
         return ((hasattr(self, 'roi_head') and self.roi_head.with_mask)
                 or (hasattr(self, 'mask_head') and self.mask_head is not None))
 
-    @abstractmethod
-    def extract_feat(self, imgs):
-        """Extract features from images."""
-        pass
+    # @abstractmethod
+    # def extract_feat(self, imgs):
+    #     """Extract features from images."""
+    #     pass
 
     def extract_feats(self, imgs):
         """Extract features from multiple images.
@@ -78,14 +78,14 @@ class BaseDetector(nn.Module, metaclass=ABCMeta):
     async def async_simple_test(self, img, img_metas, **kwargs):
         raise NotImplementedError
 
-    @abstractmethod
-    def simple_test(self, img, img_metas, **kwargs):
-        pass
+    # @abstractmethod
+    # def simple_test(self, img, img_metas, **kwargs):
+    #     pass
 
-    @abstractmethod
-    def aug_test(self, imgs, img_metas, **kwargs):
-        """Test function with test time augmentation."""
-        pass
+    # @abstractmethod
+    # def aug_test(self, imgs, img_metas, **kwargs):
+    #     """Test function with test time augmentation."""
+    #     pass
 
     async def aforward_test(self, *, img, img_metas, **kwargs):
         for var, name in [(img, 'img'), (img_metas, 'img_metas')]:

@@ -479,94 +479,94 @@ class UniADTrack(MVXTwoStageDetector):
         return out
 
     # @auto_fp16(apply_to=("img", "points"))
-    def forward_track_train(self,
-                            img,
-                            gt_bboxes_3d,
-                            gt_labels_3d,
-                            gt_past_traj,
-                            gt_past_traj_mask,
-                            gt_inds,
-                            gt_sdc_bbox,
-                            gt_sdc_label,
-                            l2g_t,
-                            l2g_r_mat,
-                            img_metas,
-                            timestamp):
-        """Forward funciton
-        Args:
-        Returns:
-        """
-        track_instances = self._generate_empty_tracks()
-        num_frame = img.size(1)
-        # init gt instances!
-        gt_instances_list = []
+    # def forward_track_train(self,
+    #                         img,
+    #                         gt_bboxes_3d,
+    #                         gt_labels_3d,
+    #                         gt_past_traj,
+    #                         gt_past_traj_mask,
+    #                         gt_inds,
+    #                         gt_sdc_bbox,
+    #                         gt_sdc_label,
+    #                         l2g_t,
+    #                         l2g_r_mat,
+    #                         img_metas,
+    #                         timestamp):
+    #     """Forward funciton
+    #     Args:
+    #     Returns:
+    #     """
+    #     track_instances = self._generate_empty_tracks()
+    #     num_frame = img.size(1)
+    #     # init gt instances!
+    #     gt_instances_list = []
 
-        for i in range(num_frame):
-            gt_instances = Instances((1, 1))
-            boxes = gt_bboxes_3d[0][i].tensor.to(img.device)
-            # normalize gt bboxes here!
-            boxes = normalize_bbox(boxes, self.pc_range)
-            sd_boxes = gt_sdc_bbox[0][i].tensor.to(img.device)
-            sd_boxes = normalize_bbox(sd_boxes, self.pc_range)
-            gt_instances.boxes = boxes
-            gt_instances.labels = gt_labels_3d[0][i]
-            gt_instances.obj_ids = gt_inds[0][i]
-            gt_instances.past_traj = gt_past_traj[0][i].float()
-            gt_instances.past_traj_mask = gt_past_traj_mask[0][i].float()
-            gt_instances.sdc_boxes = torch.cat([sd_boxes for _ in range(boxes.shape[0])], dim=0)  # boxes.shape[0] sometimes 0
-            gt_instances.sdc_labels = torch.cat([gt_sdc_label[0][i] for _ in range(gt_labels_3d[0][i].shape[0])], dim=0)
-            gt_instances_list.append(gt_instances)
+    #     for i in range(num_frame):
+    #         gt_instances = Instances((1, 1))
+    #         boxes = gt_bboxes_3d[0][i].tensor.to(img.device)
+    #         # normalize gt bboxes here!
+    #         boxes = normalize_bbox(boxes, self.pc_range)
+    #         sd_boxes = gt_sdc_bbox[0][i].tensor.to(img.device)
+    #         sd_boxes = normalize_bbox(sd_boxes, self.pc_range)
+    #         gt_instances.boxes = boxes
+    #         gt_instances.labels = gt_labels_3d[0][i]
+    #         gt_instances.obj_ids = gt_inds[0][i]
+    #         gt_instances.past_traj = gt_past_traj[0][i].float()
+    #         gt_instances.past_traj_mask = gt_past_traj_mask[0][i].float()
+    #         gt_instances.sdc_boxes = torch.cat([sd_boxes for _ in range(boxes.shape[0])], dim=0)  # boxes.shape[0] sometimes 0
+    #         gt_instances.sdc_labels = torch.cat([gt_sdc_label[0][i] for _ in range(gt_labels_3d[0][i].shape[0])], dim=0)
+    #         gt_instances_list.append(gt_instances)
 
-        self.criterion.initialize_for_single_clip(gt_instances_list)
+    #     self.criterion.initialize_for_single_clip(gt_instances_list)
 
-        out = dict()
+    #     out = dict()
 
-        for i in range(num_frame):
-            prev_img = img[:, :i, ...] if i != 0 else img[:, :1, ...]
-            prev_img_metas = copy.deepcopy(img_metas)
-            # TODO: Generate prev_bev in an RNN way.
+    #     for i in range(num_frame):
+    #         prev_img = img[:, :i, ...] if i != 0 else img[:, :1, ...]
+    #         prev_img_metas = copy.deepcopy(img_metas)
+    #         # TODO: Generate prev_bev in an RNN way.
 
-            img_single = torch.stack([img_[i] for img_ in img], dim=0)
-            img_metas_single = [copy.deepcopy(img_metas[0][i])]
-            if i == num_frame - 1:
-                l2g_r2 = None
-                l2g_t2 = None
-                time_delta = None
-            else:
-                l2g_r2 = l2g_r_mat[0][i + 1]
-                l2g_t2 = l2g_t[0][i + 1]
-                time_delta = timestamp[0][i + 1] - timestamp[0][i]
-            all_query_embeddings = []
-            all_matched_idxes = []
-            all_instances_pred_logits = []
-            all_instances_pred_boxes = []
-            frame_res = self._forward_single_frame_train(
-                img_single,
-                img_metas_single,
-                track_instances,
-                prev_img,
-                prev_img_metas,
-                l2g_r_mat[0][i],
-                l2g_t[0][i],
-                l2g_r2,
-                l2g_t2,
-                time_delta,
-                all_query_embeddings,
-                all_matched_idxes,
-                all_instances_pred_logits,
-                all_instances_pred_boxes,
-            )
-            # all_query_embeddings: len=dec nums, N*256
-            # all_matched_idxes: len=dec nums, N*2
-            track_instances = frame_res["track_instances"]
+    #         img_single = torch.stack([img_[i] for img_ in img], dim=0)
+    #         img_metas_single = [copy.deepcopy(img_metas[0][i])]
+    #         if i == num_frame - 1:
+    #             l2g_r2 = None
+    #             l2g_t2 = None
+    #             time_delta = None
+    #         else:
+    #             l2g_r2 = l2g_r_mat[0][i + 1]
+    #             l2g_t2 = l2g_t[0][i + 1]
+    #             time_delta = timestamp[0][i + 1] - timestamp[0][i]
+    #         all_query_embeddings = []
+    #         all_matched_idxes = []
+    #         all_instances_pred_logits = []
+    #         all_instances_pred_boxes = []
+    #         frame_res = self._forward_single_frame_train(
+    #             img_single,
+    #             img_metas_single,
+    #             track_instances,
+    #             prev_img,
+    #             prev_img_metas,
+    #             l2g_r_mat[0][i],
+    #             l2g_t[0][i],
+    #             l2g_r2,
+    #             l2g_t2,
+    #             time_delta,
+    #             all_query_embeddings,
+    #             all_matched_idxes,
+    #             all_instances_pred_logits,
+    #             all_instances_pred_boxes,
+    #         )
+    #         # all_query_embeddings: len=dec nums, N*256
+    #         # all_matched_idxes: len=dec nums, N*2
+    #         track_instances = frame_res["track_instances"]
         
-        get_keys = ["bev_embed", "bev_pos",
-                    "track_query_embeddings", "track_query_matched_idxes", "track_bbox_results",
-                    "sdc_boxes_3d", "sdc_scores_3d", "sdc_track_scores", "sdc_track_bbox_results", "sdc_embedding"]
-        out.update({k: frame_res[k] for k in get_keys})
+    #     get_keys = ["bev_embed", "bev_pos",
+    #                 "track_query_embeddings", "track_query_matched_idxes", "track_bbox_results",
+    #                 "sdc_boxes_3d", "sdc_scores_3d", "sdc_track_scores", "sdc_track_bbox_results", "sdc_embedding"]
+    #     out.update({k: frame_res[k] for k in get_keys})
         
-        losses = self.criterion.losses_dict
-        return losses, out
+    #     losses = self.criterion.losses_dict
+    #     return losses, out
 
     def upsample_bev_if_tiny(self, outs_track):
         if outs_track["bev_embed"].size(0) == 100 * 100:

@@ -373,16 +373,16 @@ class MVXTwoStageDetector(Base3DDetector):
     #     proposal_list = self.img_rpn_head.get_bboxes(*proposal_inputs)
     #     return proposal_list
 
-    def simple_test_pts(self, x, img_metas, rescale=False):
-        """Test function of point cloud branch."""
-        outs = self.pts_bbox_head(x)
-        bbox_list = self.pts_bbox_head.get_bboxes(
-            *outs, img_metas, rescale=rescale)
-        bbox_results = [
-            bbox3d2result(bboxes, scores, labels)
-            for bboxes, scores, labels in bbox_list
-        ]
-        return bbox_results
+    # def simple_test_pts(self, x, img_metas, rescale=False):
+    #     """Test function of point cloud branch."""
+    #     outs = self.pts_bbox_head(x)
+    #     bbox_list = self.pts_bbox_head.get_bboxes(
+    #         *outs, img_metas, rescale=rescale)
+    #     bbox_results = [
+    #         bbox3d2result(bboxes, scores, labels)
+    #         for bboxes, scores, labels in bbox_list
+    #     ]
+    #     return bbox_results
 
     # def simple_test(self, points, img_metas, img=None, rescale=False):
     #     """Test function without augmentaiton."""
@@ -402,42 +402,42 @@ class MVXTwoStageDetector(Base3DDetector):
     #             result_dict['img_bbox'] = img_bbox
     #     return bbox_list
 
-    def aug_test(self, points, img_metas, imgs=None, rescale=False):
-        """Test function with augmentaiton."""
-        img_feats, pts_feats = self.extract_feats(points, img_metas, imgs)
+    # def aug_test(self, points, img_metas, imgs=None, rescale=False):
+    #     """Test function with augmentaiton."""
+    #     img_feats, pts_feats = self.extract_feats(points, img_metas, imgs)
 
-        bbox_list = dict()
-        if pts_feats and self.with_pts_bbox:
-            bbox_pts = self.aug_test_pts(pts_feats, img_metas, rescale)
-            bbox_list.update(pts_bbox=bbox_pts)
-        return [bbox_list]
+    #     bbox_list = dict()
+    #     if pts_feats and self.with_pts_bbox:
+    #         bbox_pts = self.aug_test_pts(pts_feats, img_metas, rescale)
+    #         bbox_list.update(pts_bbox=bbox_pts)
+    #     return [bbox_list]
 
-    def extract_feats(self, points, img_metas, imgs=None):
-        """Extract point and image features of multiple samples."""
-        if imgs is None:
-            imgs = [None] * len(img_metas)
-        img_feats, pts_feats = multi_apply(self.extract_feat, points, imgs,
-                                           img_metas)
-        return img_feats, pts_feats
+    # def extract_feats(self, points, img_metas, imgs=None):
+    #     """Extract point and image features of multiple samples."""
+    #     if imgs is None:
+    #         imgs = [None] * len(img_metas)
+    #     img_feats, pts_feats = multi_apply(self.extract_feat, points, imgs,
+    #                                        img_metas)
+    #     return img_feats, pts_feats
 
-    def aug_test_pts(self, feats, img_metas, rescale=False):
-        """Test function of point cloud branch with augmentaiton."""
-        # only support aug_test for one sample
-        aug_bboxes = []
-        for x, img_meta in zip(feats, img_metas):
-            outs = self.pts_bbox_head(x)
-            bbox_list = self.pts_bbox_head.get_bboxes(
-                *outs, img_meta, rescale=rescale)
-            bbox_list = [
-                dict(boxes_3d=bboxes, scores_3d=scores, labels_3d=labels)
-                for bboxes, scores, labels in bbox_list
-            ]
-            aug_bboxes.append(bbox_list[0])
+    # def aug_test_pts(self, feats, img_metas, rescale=False):
+    #     """Test function of point cloud branch with augmentaiton."""
+    #     # only support aug_test for one sample
+    #     aug_bboxes = []
+    #     for x, img_meta in zip(feats, img_metas):
+    #         outs = self.pts_bbox_head(x)
+    #         bbox_list = self.pts_bbox_head.get_bboxes(
+    #             *outs, img_meta, rescale=rescale)
+    #         bbox_list = [
+    #             dict(boxes_3d=bboxes, scores_3d=scores, labels_3d=labels)
+    #             for bboxes, scores, labels in bbox_list
+    #         ]
+    #         aug_bboxes.append(bbox_list[0])
 
-        # after merging, bboxes will be rescaled to the original image size
-        merged_bboxes = merge_aug_bboxes_3d(aug_bboxes, img_metas,
-                                            self.pts_bbox_head.test_cfg)
-        return merged_bboxes
+    #     # after merging, bboxes will be rescaled to the original image size
+    #     merged_bboxes = merge_aug_bboxes_3d(aug_bboxes, img_metas,
+    #                                         self.pts_bbox_head.test_cfg)
+    #     return merged_bboxes
 
     # def show_results(self, data, result, out_dir):
     #     """Results visualization.
