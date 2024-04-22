@@ -40,8 +40,8 @@ def test_PerceptionTransformer():
     from src.track_head.transformer import PerceptionTransformer
     transformer = PerceptionTransformer(**cfg)
     
-    
-    
+
+   
 # def test_MVXTwoStageDetector():
 #     from src.modules.mvx_two_stage import MVXTwoStageDetector
 #     img_backbone = {'type': 'ResNet', 'depth': 101, 'num_stages': 4, 'out_indices': (1, 2, 3), 'frozen_stages': 4, 'norm_cfg': {'type': 'BN2d', 'requires_grad': False}, 'norm_eval': True, 'style': 'caffe', 'dcn': {'type': 'DCNv2', 'deform_groups': 1, 'fallback_on_stride': False}, 'stage_with_dcn': (False, False, True, True)}
