@@ -129,7 +129,7 @@ class MotionTransformerAttentionLayer(nn.Module):
         self.norms = ModuleList()
         num_norms = operation_order.count('norm')
         for _ in range(num_norms):
-            self.norms.append(build_norm_layer(norm_cfg, self.embed_dims))
+            self.norms.append(build_norm_layer(norm_cfg, self.embed_dims)[1])
 
     def forward(self,
                 query,

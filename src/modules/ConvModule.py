@@ -138,7 +138,7 @@ class ConvModule(nn.Module):
                 norm_channels = out_channels
             else:
                 norm_channels = in_channels
-            self.norm_name, norm = build_norm_layer(norm_cfg, norm_channels, name_flag=True)
+            self.norm_name, norm = build_norm_layer(norm_cfg, norm_channels)
             self.add_module(self.norm_name, norm)
             if self.with_bias:
                 if isinstance(norm, (_BatchNorm, _InstanceNorm)):

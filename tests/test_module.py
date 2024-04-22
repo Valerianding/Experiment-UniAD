@@ -40,6 +40,7 @@ def test_PerceptionTransformer():
     from src.track_head.transformer import PerceptionTransformer
     transformer = PerceptionTransformer(**cfg)
     
+
     
     
 def test_MVXTwoStageDetector():
@@ -62,4 +63,22 @@ def test_MVXTwoStageDetector():
 
 def test_UniADTrack():
     pass
+
+   
+# def test_MVXTwoStageDetector():
+#     from src.modules.mvx_two_stage import MVXTwoStageDetector
+#     img_backbone = {'type': 'ResNet', 'depth': 101, 'num_stages': 4, 'out_indices': (1, 2, 3), 'frozen_stages': 4, 'norm_cfg': {'type': 'BN2d', 'requires_grad': False}, 'norm_eval': True, 'style': 'caffe', 'dcn': {'type': 'DCNv2', 'deform_groups': 1, 'fallback_on_stride': False}, 'stage_with_dcn': (False, False, True, True)}
+#     img_neck = {'type': 'FPN', 'in_channels': [512, 1024, 2048], 'out_channels': 256, 'start_level': 0, 'add_extra_convs': 'on_output', 'num_outs': 4, 'relu_before_extra_convs': True}
+#     pts_bbox_head = {'type': 'BEVFormerTrackHead', 'bev_h': 200, 'bev_w': 200, 'num_query': 900, 'num_classes': 10, 'in_channels': 256, 'sync_cls_avg_factor': True, 'with_box_refine': True, 'as_two_stage': False, 'past_steps': 4, 'fut_steps': 4, 'transformer': {'type': 'PerceptionTransformer', 'rotate_prev_bev': True, 'use_shift': True, 'use_can_bus': True, 'embed_dims': 256, 'encoder': {'type': 'BEVFormerEncoder', 'num_layers': 6, 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'num_points_in_pillar': 4, 'return_intermediate': False, 'transformerlayers': {'type': 'BEVFormerLayer', 'attn_cfgs': [{'type': 'TemporalSelfAttention', 'embed_dims': 256, 'num_levels': 1}, {'type': 'SpatialCrossAttention', 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'deformable_attention': {'type': 'MSDeformableAttention3D', 'embed_dims': 256, 'num_points': 8, 'num_levels': 4}, 'embed_dims': 256}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}, 'decoder': {'type': 'DetectionTransformerDecoder', 'num_layers': 6, 'return_intermediate': True, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': [{'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'dropout': 0.1}, {'type': 'CustomMSDeformableAttention', 'embed_dims': 256, 'num_levels': 1}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}}, 'bbox_coder': {'type': 'NMSFreeCoder', 'post_center_range': [-61.2, -61.2, -10.0, 61.2, 61.2, 10.0], 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'max_num': 300, 'voxel_size': [0.2, 0.2, 8], 'num_classes': 10}, 'positional_encoding': {'type': 'LearnedPositionalEncoding', 'num_feats': 128, 'row_num_embed': 200, 'col_num_embed': 200}, 'loss_cls': {'type': 'FocalLoss', 'use_sigmoid': True, 'gamma': 2.0, 'alpha': 0.25, 'loss_weight': 2.0}, 'loss_bbox': {'type': 'L1Loss', 'loss_weight': 0.25}, 'loss_iou': {'type': 'GIoULoss', 'loss_weight': 0.0}}
+#     train_cfg = None
+#     test_cfg = None
+#     pretrained = None
+#     detector = MVXTwoStageDetector(
+#             img_backbone=img_backbone,
+#             img_neck=img_neck,
+#             pts_bbox_head=pts_bbox_head,
+#             train_cfg=train_cfg,
+#             test_cfg=test_cfg,
+#             pretrained=pretrained,
+#         )
     
