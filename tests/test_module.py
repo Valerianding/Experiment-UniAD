@@ -20,14 +20,12 @@ def test_occ_head():
     cfg = {'type': 'OccHead', 'grid_conf': {'xbound': [-50.0, 50.0, 0.5], 'ybound': [-50.0, 50.0, 0.5], 'zbound': [-10.0, 10.0, 20.0]}, 'ignore_index': 255, 'bev_proj_dim': 256, 'bev_proj_nlayers': 4, 'attn_mask_thresh': 0.3, 'transformer_decoder': {'type': 'DetrTransformerDecoder', 'return_intermediate': True, 'num_layers': 5, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': {'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'attn_drop': 0.0, 'proj_drop': 0.0, 'dropout_layer': None, 'batch_first': False}, 'ffn_cfgs': {'type': 'FFN', 'embed_dims': 256, 'feedforward_channels': 2048, 'num_fcs': 2, 'act_cfg': {'type': 'ReLU', 'inplace': True}, 'ffn_drop': 0.0, 'dropout_layer': None, 'add_identity': True}, 'feedforward_channels': 2048, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}, 'init_cfg': None}, 'query_dim': 256, 'query_mlp_layers': 3, 'aux_loss_weight': 1.0, 'loss_mask': {'type': 'FieryBinarySegmentationLoss', 'use_top_k': True, 'top_k_ratio': 0.25, 'future_discount': 0.95, 'loss_weight': 5.0, 'ignore_index': 255}, 'loss_dice': {'type': 'DiceLossWithMasks', 'use_sigmoid': True, 'activate': True, 'reduction': 'mean', 'naive_dice': True, 'eps': 1.0, 'ignore_index': 255, 'loss_weight': 1.0}, 'pan_eval': True, 'test_seg_thresh': 0.1, 'test_with_track_score': True}
     cfg.pop('type')
     occhead_instance = OccHead(**cfg)
-    print(occhead_instance)
 
     
 def test_motion_head():
     from src.motion_head.motion_head import MotionHead
     cfg = {'type': 'MotionHead', 'bev_h': 200, 'bev_w': 200, 'num_query': 300, 'num_classes': 10, 'predict_steps': 12, 'predict_modes': 6, 'embed_dims': 256, 'loss_traj': {'type': 'TrajLoss', 'use_variance': True, 'cls_loss_weight': 0.5, 'nll_loss_weight': 0.5, 'loss_weight_minade': 0.0, 'loss_weight_minfde': 0.25}, 'num_cls_fcs': 3, 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'group_id_list': [[0, 1, 2, 3, 4], [6, 7], [8], [5, 9]], 'num_anchor': 6, 'use_nonlinear_optimizer': True, 'anchor_info_path': 'weights/motion_anchor_infos_mode6.pkl', 'transformerlayers': {'type': 'MotionTransformerDecoder', 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'embed_dims': 256, 'num_layers': 3, 'transformerlayers': {'type': 'MotionTransformerAttentionLayer', 'batch_first': True, 'attn_cfgs': [{'type': 'MotionDeformableAttention', 'num_steps': 12, 'embed_dims': 256, 'num_levels': 1, 'num_heads': 8, 'num_points': 4, 'sample_index': -1}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('cross_attn', 'norm', 'ffn', 'norm')}}}
     motionhead_instance = MotionHead(**cfg)
-    print(motionhead_instance)
 
     
 def test_bevformer_decoder():
@@ -35,5 +33,29 @@ def test_bevformer_decoder():
     from src.utils.builder import build_transformer_layer_sequence
     cfg = {'type': 'DetectionTransformerDecoder', 'num_layers': 6, 'return_intermediate': True, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': [{'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'dropout': 0.1}, {'type': 'CustomMSDeformableAttention', 'embed_dims': 256, 'num_levels': 1}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}
     decoder = build_transformer_layer_sequence(cfg)
-    print(decoder)
+    
+
+def test_PerceptionTransformer():
+    cfg = {'type': 'PerceptionTransformer', 'rotate_prev_bev': True, 'use_shift': True, 'use_can_bus': True, 'embed_dims': 256, 'encoder': {'type': 'BEVFormerEncoder', 'num_layers': 6, 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'num_points_in_pillar': 4, 'return_intermediate': False, 'transformerlayers': {'type': 'BEVFormerLayer', 'attn_cfgs': [{'type': 'TemporalSelfAttention', 'embed_dims': 256, 'num_levels': 1}, {'type': 'SpatialCrossAttention', 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'deformable_attention': {'type': 'MSDeformableAttention3D', 'embed_dims': 256, 'num_points': 8, 'num_levels': 4}, 'embed_dims': 256}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}, 'decoder': {'type': 'DetectionTransformerDecoder', 'num_layers': 6, 'return_intermediate': True, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': [{'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'dropout': 0.1}, {'type': 'CustomMSDeformableAttention', 'embed_dims': 256, 'num_levels': 1}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}}
+    from src.track_head.transformer import PerceptionTransformer
+    transformer = PerceptionTransformer(**cfg)
+    
+    
+    
+# def test_MVXTwoStageDetector():
+#     from src.modules.mvx_two_stage import MVXTwoStageDetector
+#     img_backbone = {'type': 'ResNet', 'depth': 101, 'num_stages': 4, 'out_indices': (1, 2, 3), 'frozen_stages': 4, 'norm_cfg': {'type': 'BN2d', 'requires_grad': False}, 'norm_eval': True, 'style': 'caffe', 'dcn': {'type': 'DCNv2', 'deform_groups': 1, 'fallback_on_stride': False}, 'stage_with_dcn': (False, False, True, True)}
+#     img_neck = {'type': 'FPN', 'in_channels': [512, 1024, 2048], 'out_channels': 256, 'start_level': 0, 'add_extra_convs': 'on_output', 'num_outs': 4, 'relu_before_extra_convs': True}
+#     pts_bbox_head = {'type': 'BEVFormerTrackHead', 'bev_h': 200, 'bev_w': 200, 'num_query': 900, 'num_classes': 10, 'in_channels': 256, 'sync_cls_avg_factor': True, 'with_box_refine': True, 'as_two_stage': False, 'past_steps': 4, 'fut_steps': 4, 'transformer': {'type': 'PerceptionTransformer', 'rotate_prev_bev': True, 'use_shift': True, 'use_can_bus': True, 'embed_dims': 256, 'encoder': {'type': 'BEVFormerEncoder', 'num_layers': 6, 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'num_points_in_pillar': 4, 'return_intermediate': False, 'transformerlayers': {'type': 'BEVFormerLayer', 'attn_cfgs': [{'type': 'TemporalSelfAttention', 'embed_dims': 256, 'num_levels': 1}, {'type': 'SpatialCrossAttention', 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'deformable_attention': {'type': 'MSDeformableAttention3D', 'embed_dims': 256, 'num_points': 8, 'num_levels': 4}, 'embed_dims': 256}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}, 'decoder': {'type': 'DetectionTransformerDecoder', 'num_layers': 6, 'return_intermediate': True, 'transformerlayers': {'type': 'DetrTransformerDecoderLayer', 'attn_cfgs': [{'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 8, 'dropout': 0.1}, {'type': 'CustomMSDeformableAttention', 'embed_dims': 256, 'num_levels': 1}], 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}}, 'bbox_coder': {'type': 'NMSFreeCoder', 'post_center_range': [-61.2, -61.2, -10.0, 61.2, 61.2, 10.0], 'pc_range': [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], 'max_num': 300, 'voxel_size': [0.2, 0.2, 8], 'num_classes': 10}, 'positional_encoding': {'type': 'LearnedPositionalEncoding', 'num_feats': 128, 'row_num_embed': 200, 'col_num_embed': 200}, 'loss_cls': {'type': 'FocalLoss', 'use_sigmoid': True, 'gamma': 2.0, 'alpha': 0.25, 'loss_weight': 2.0}, 'loss_bbox': {'type': 'L1Loss', 'loss_weight': 0.25}, 'loss_iou': {'type': 'GIoULoss', 'loss_weight': 0.0}}
+#     train_cfg = None
+#     test_cfg = None
+#     pretrained = None
+#     detector = MVXTwoStageDetector(
+#             img_backbone=img_backbone,
+#             img_neck=img_neck,
+#             pts_bbox_head=pts_bbox_head,
+#             train_cfg=train_cfg,
+#             test_cfg=test_cfg,
+#             pretrained=pretrained,
+#         )
     

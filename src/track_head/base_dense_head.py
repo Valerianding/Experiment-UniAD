@@ -8,10 +8,10 @@ class BaseDenseHead(nn.Module, metaclass=ABCMeta):
         assert init_cfg is None
         super(BaseDenseHead, self).__init__()
 
-    @abstractmethod
-    def loss(self, **kwargs):
-        """Compute losses of the head."""
-        pass
+    # @abstractmethod
+    # def loss(self, **kwargs):
+    #     """Compute losses of the head."""
+    #     pass
 
     @abstractmethod
     def get_bboxes(self, **kwargs):

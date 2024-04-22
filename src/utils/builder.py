@@ -209,8 +209,12 @@ def build_transformer_layer_sequence(cfg):
         from src.track_head.CustomMSDeformableAttention import DetectionTransformerDecoder
         decoder = DetectionTransformerDecoder(**cfg_).to("cuda")
         return decoder
+    elif type == "BEVFormerEncoder":
+        from src.track_head.custom_encoder import BEVFormerEncoder
+        encoder = BEVFormerEncoder(**cfg_).to("cuda")
+        return encoder
     else:
-        assert False
+        assert False, f"{type} is not supported"
     
 def build_transformer(cfg):
     cfg_  = cfg.copy()
@@ -224,6 +228,10 @@ def build_transformer(cfg):
         from src.seg_head.seg_mask_head import SegMaskHead
         segMaskHead = SegMaskHead(**cfg_).to("cuda")
         return segMaskHead
+    elif type == "PerceptionTransformer":
+        from src.track_head.transformer import PerceptionTransformer
+        transformer = PerceptionTransformer(**cfg_).to("cuda")
+        return transformer
     else:
         assert False, f"{type} not supported"
 
@@ -232,10 +240,16 @@ def build_positional_encoding(cfg):
     cfg_ = cfg.copy()
     type = cfg_['type']
     cfg_.pop('type')
-    assert type == "SinePositionalEncoding"
-    from src.modules.positional_encoding import SinePositionalEncoding
-    encoding = SinePositionalEncoding(**cfg_).to("cuda")
-    return encoding
+    if type == "SinePositionalEncoding":
+        from src.modules.positional_encoding import SinePositionalEncoding
+        encoding = SinePositionalEncoding(**cfg_).to("cuda")
+        return encoding
+    elif type == "LearnedPositionalEncoding":
+        from src.modules.positional_encoding import LearnedPositionalEncoding
+        encoding = LearnedPositionalEncoding(**cfg_).to("cuda")
+        return encoding
+    else:
+        assert False, f"{type} not supported"
 
 
 def get_transformer():
@@ -265,7 +279,7 @@ def build_neck(cfg):
 def build_bev_encoder():
     from src.track_head.custom_encoder import BEVFormerEncoder
     pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
-    encoder = BEVFormerEncoder(pc_range=pc_range,num_points_in_pillar=4)
+    encoder = BEVFormerEncoder(pc_range=pc_range,num_points_in_pillar=4).to("cuda")
     return encoder
 
 
@@ -277,5 +291,20 @@ def build_head(cfg):
         from src.seg_head.panseg_head import PansegformerHead
         head = PansegformerHead(**cfg_).to("cuda")
         return head
+    elif type == "BEVFormerTrackHead":
+        from src.track_head.track_head import BEVFormerTrackHead
+        head = BEVFormerTrackHead(**cfg_).to("cuda")
+        return head
     else:
         assert False,f"{type} not supported"
+        
+def build_bbox_coder(cfg):
+    cfg_ = cfg.copy()
+    type = cfg_['type']
+    cfg_.pop('type')
+    if type == "NMSFreeCoder":
+        from src.mmdet3d.nms_free_coder import NMSFreeCoder
+        coder = NMSFreeCoder(**cfg_)
+        return coder
+    else:
+        assert False, f"{type} not supported"
