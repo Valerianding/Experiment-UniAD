@@ -12,8 +12,8 @@ def test_build_attention():
     
 def test_build_transformer_layer():
     from src.utils.builder import build_transformer_layer
-    cfg1 = {'type': 'BaseTransformerLayer', 'attn_cfgs': {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}, 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'ffn', 'norm')}
-    layer = build_transformer_layer(cfg1)
+    cfg = {'type': 'BaseTransformerLayer', 'attn_cfgs': {'type': 'MultiScaleDeformableAttention', 'embed_dims': 256, 'num_levels': 4}, 'feedforward_channels': 512, 'ffn_dropout': 0.1, 'operation_order': ('self_attn', 'norm', 'ffn', 'norm')}
+    layer = build_transformer_layer(cfg)
    
 
 def test_build_transformer_layer_sequence():

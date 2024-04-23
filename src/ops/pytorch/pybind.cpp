@@ -34,6 +34,14 @@ void modulated_deform_conv_backward(
     int pad_w, int dilation_h, int dilation_w, int group, int deformable_group,
     const bool with_bias);
 
+void iou3d_nms_normal_forward(Tensor boxes, Tensor keep, Tensor keep_num,
+                              float nms_overlap_thresh);
+
+void iou3d_nms_forward(Tensor boxes, Tensor keep, Tensor keep_num,
+                       float nms_overlap_thresh);
+
+void iou3d_boxes_iou_bev_forward(Tensor boxes_a, Tensor boxes_b,
+                                 Tensor ans_iou);                                                  
 PYBIND11_MODULE(TORCH_EXTENSION_NAME,m){
     m.def("ms_deform_attn_forward", &ms_deform_attn_forward, "Forward function for ms_deform_attn",
         py::arg("value"),py::arg("spatial_shapes"), py::arg("level_start_index"), py::arg("sampling_loc"),
@@ -61,4 +69,13 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME,m){
         py::arg("kernel_w"), py::arg("stride_h"), py::arg("stride_w"),
         py::arg("pad_h"), py::arg("pad_w"), py::arg("dilation_h"), py::arg("dilation_w"),
         py::arg("group"), py::arg("deformable_group"), py::arg("with_bias"));
+
+    m.def("iou3d_nms_normal_forward", &iou3d_nms_normal_forward, "Perform IOU 3D NMS operation",
+          py::arg("boxes"), py::arg("keep"), py::arg("keep_num"), py::arg("nms_overlap_thresh"));
+          
+    m.def("iou3d_nms_forward", &iou3d_nms_forward, "Perform IOU 3D NMS operation",
+          py::arg("boxes"), py::arg("keep"), py::arg("keep_num"), py::arg("nms_overlap_thresh"));
+
+    m.def("iou3d_boxes_iou_bev_forward", &iou3d_boxes_iou_bev_forward, "Compute IOU BEV between two sets of boxes",
+          py::arg("boxes_a"), py::arg("boxes_b"), py::arg("ans_iou"));
 }

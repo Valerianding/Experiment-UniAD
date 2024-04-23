@@ -29,8 +29,8 @@ class UniAD(UniADTrack):
             self.occ_head = build_head(occ_head)
         if motion_head:
             self.motion_head = build_head(motion_head)
-        if planning_head:
-            self.planning_head = build_head(planning_head)
+        # if planning_head:
+        #     self.planning_head = build_head(planning_head)
         
         self.task_loss_weight = task_loss_weight
         assert set(task_loss_weight.keys()) == \
@@ -288,22 +288,22 @@ class UniAD(UniADTrack):
         if self.with_seg_head:
             result_seg =  self.seg_head.forward_test(bev_embed, gt_lane_labels, gt_lane_masks, img_metas, rescale)
 
-        # if self.with_motion_head:
-        #     result_motion, outs_motion = self.motion_head.forward_test(bev_embed, outs_track=result_track[0], outs_seg=result_seg[0])
-        #     outs_motion['bev_pos'] = result_track[0]['bev_pos']
+        if self.with_motion_head:
+            result_motion, outs_motion = self.motion_head.forward_test(bev_embed, outs_track=result_track[0], outs_seg=result_seg[0])
+            outs_motion['bev_pos'] = result_track[0]['bev_pos']
 
-        # outs_occ = dict()
-        # if self.with_occ_head:
-        #     occ_no_query = outs_motion['track_query'].shape[1] == 0
-        #     outs_occ = self.occ_head.forward_test(
-        #         bev_embed, 
-        #         outs_motion,
-        #         no_query = occ_no_query,
-        #         gt_segmentation=gt_segmentation,
-        #         gt_instance=gt_instance,
-        #         gt_img_is_valid=gt_occ_img_is_valid,
-        #     )
-        #     result[0]['occ'] = outs_occ
+        outs_occ = dict()
+        if self.with_occ_head:
+            occ_no_query = outs_motion['track_query'].shape[1] == 0
+            outs_occ = self.occ_head.forward_test(
+                bev_embed, 
+                outs_motion,
+                no_query = occ_no_query,
+                gt_segmentation=gt_segmentation,
+                gt_instance=gt_instance,
+                gt_img_is_valid=gt_occ_img_is_valid,
+            )
+            result[0]['occ'] = outs_occ
         
         # if self.with_planning_head:
         #     planning_gt=dict(

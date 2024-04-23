@@ -83,9 +83,83 @@ void modulated_deformable_col2im_coord_impl(
     const int dilation_h, const int dilation_w, const int deformable_group,
     Tensor grad_offset, Tensor grad_mask);
 
+
+void IoU3DBoxesOverlapBevForwardCUDAKernelLauncher(const int num_a,
+                                                   const Tensor boxes_a,
+                                                   const int num_b,
+                                                   const Tensor boxes_b,
+                                                   Tensor ans_overlap);
+
+void IoU3DBoxesIoUBevForwardCUDAKernelLauncher(const int num_a,
+                                               const Tensor boxes_a,
+                                               const int num_b,
+                                               const Tensor boxes_b,
+                                               Tensor ans_iou);
+
+void IoU3DNMSForwardCUDAKernelLauncher(const Tensor boxes,
+                                       unsigned long long* mask, int boxes_num,
+                                       float nms_overlap_thresh);
+
+void IoU3DNMSNormalForwardCUDAKernelLauncher(const Tensor boxes,
+                                             unsigned long long* mask,
+                                             int boxes_num,
+                                             float nms_overlap_thresh);
+
+void iou3d_boxes_overlap_bev_forward_cuda(const int num_a, const Tensor boxes_a,
+                                          const int num_b, const Tensor boxes_b,
+                                          Tensor ans_overlap) {
+  IoU3DBoxesOverlapBevForwardCUDAKernelLauncher(num_a, boxes_a, num_b, boxes_b,
+                                                ans_overlap);
+};
+
+void iou3d_boxes_iou_bev_forward_cuda(const int num_a, const Tensor boxes_a,
+                                      const int num_b, const Tensor boxes_b,
+                                      Tensor ans_iou) {
+  IoU3DBoxesIoUBevForwardCUDAKernelLauncher(num_a, boxes_a, num_b, boxes_b,
+                                            ans_iou);
+};
+
+void iou3d_nms_forward_cuda(const Tensor boxes, unsigned long long* mask,
+                            int boxes_num, float nms_overlap_thresh) {
+  IoU3DNMSForwardCUDAKernelLauncher(boxes, mask, boxes_num, nms_overlap_thresh);
+};
+
+void iou3d_nms_normal_forward_cuda(const Tensor boxes, unsigned long long* mask,
+                                   int boxes_num, float nms_overlap_thresh) {
+  IoU3DNMSNormalForwardCUDAKernelLauncher(boxes, mask, boxes_num,
+                                          nms_overlap_thresh);
+};
+
+void iou3d_boxes_overlap_bev_forward_impl(const int num_a, const Tensor boxes_a,
+                                          const int num_b, const Tensor boxes_b,
+                                          Tensor ans_overlap);
+
+void iou3d_boxes_iou_bev_forward_impl(const int num_a, const Tensor boxes_a,
+                                      const int num_b, const Tensor boxes_b,
+                                      Tensor ans_iou);
+
+void iou3d_nms_forward_impl(const Tensor boxes, unsigned long long* mask,
+                            int boxes_num, float nms_overlap_thresh);
+
+void iou3d_nms_normal_forward_impl(const Tensor boxes, unsigned long long* mask,
+                                   int boxes_num, float nms_overlap_thresh);
+
+REGISTER_DEVICE_IMPL(iou3d_boxes_overlap_bev_forward_impl, CUDA,
+                     iou3d_boxes_overlap_bev_forward_cuda);
+                     
+REGISTER_DEVICE_IMPL(iou3d_boxes_iou_bev_forward_impl, CUDA,
+                     iou3d_boxes_iou_bev_forward_cuda);
+
+REGISTER_DEVICE_IMPL(iou3d_nms_forward_impl, CUDA, iou3d_nms_forward_cuda);
+
+REGISTER_DEVICE_IMPL(iou3d_nms_normal_forward_impl, CUDA,
+                     iou3d_nms_normal_forward_cuda);
+
 REGISTER_DEVICE_IMPL(modulated_deformable_im2col_impl, CUDA,
                      modulated_deformable_im2col_cuda);
+
 REGISTER_DEVICE_IMPL(modulated_deformable_col2im_impl, CUDA,
                      modulated_deformable_col2im_cuda);
+                     
 REGISTER_DEVICE_IMPL(modulated_deformable_col2im_coord_impl, CUDA,
                      modulated_deformable_col2im_coord_cuda);

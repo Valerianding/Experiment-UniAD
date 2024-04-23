@@ -287,13 +287,21 @@ def build_head(cfg):
     cfg_ = cfg.copy()
     type = cfg_['type']
     cfg_.pop('type')
-    if type == "PanSegHead":
+    if type == "PansegformerHead":
         from src.seg_head.panseg_head import PansegformerHead
         head = PansegformerHead(**cfg_).to("cuda")
         return head
     elif type == "BEVFormerTrackHead":
         from src.track_head.track_head import BEVFormerTrackHead
         head = BEVFormerTrackHead(**cfg_).to("cuda")
+        return head
+    elif type == "OccHead":
+        from src.occ_head.occ_head import OccHead
+        head = OccHead(**cfg_).to("cuda")
+        return head
+    elif type == "MotionHead":
+        from src.motion_head.motion_head import MotionHead
+        head = MotionHead(**cfg_).to("cuda")
         return head
     else:
         assert False,f"{type} not supported"
@@ -305,6 +313,10 @@ def build_bbox_coder(cfg):
     if type == "NMSFreeCoder":
         from src.mmdet3d.nms_free_coder import NMSFreeCoder
         coder = NMSFreeCoder(**cfg_)
+        return coder
+    elif type == "DETRTrack3DCoder":
+        from src.mmdet3d.detr3d_track_coder import DETRTrack3DCoder
+        coder = DETRTrack3DCoder(**cfg_)
         return coder
     else:
         assert False, f"{type} not supported"

@@ -9,6 +9,7 @@ from src.modules.track_instance import Instances
 from src.utils.utils import inverse_sigmoid
 from src.modules.tracker import RuntimeTrackerBase
 from src.modules.track_head_plugin import MemoryBank, QueryInteractionModule
+from src.utils.builder import build_bbox_coder
 class UniADTrack(MVXTwoStageDetector):
     """UniAD tracking part
     """
@@ -119,7 +120,9 @@ class UniADTrack(MVXTwoStageDetector):
             dim_out=embed_dims,
         )
 
-        # self.bbox_coder = build_bbox_coder(bbox_coder)
+        import pdb
+        pdb.set_trace()
+        self.bbox_coder = build_bbox_coder(bbox_coder)
 
         self.memory_bank = MemoryBank(
             mem_args,
