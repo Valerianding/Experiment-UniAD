@@ -1,5 +1,4 @@
 from src.modules.multi_scale_deform_attn import multi_scale_deformable_attn_pytorch
-import cv2 as cv
 import copy
 import warnings
 from matplotlib import pyplot as plt

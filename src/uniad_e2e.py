@@ -337,7 +337,7 @@ class UniAD(UniADTrack):
         #     if self.with_seg_head:
         #         res.update(result_seg[i])
 
-        # return result
+        return result
 
 
 def pop_elem_in_result(task_result:dict, pop_list:list=None):
