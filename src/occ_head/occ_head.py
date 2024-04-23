@@ -66,7 +66,7 @@ class OccHead(nn.Module):
         self.n_future = n_future
         self.spatial_extent = spatial_extent
         self.ignore_index  = ignore_index
-
+        self.training = False
         bevformer_bev_conf = {
             'xbound': [-51.2, 51.2, 0.512],
             'ybound': [-51.2, 51.2, 0.512],
