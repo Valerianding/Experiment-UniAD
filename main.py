@@ -487,10 +487,33 @@ if __name__ == "__main__":
     'use_grid_mask': True,
     'vehicle_id_list': [0, 1, 2, 3, 4, 6, 7],
     'video_test_mode': True}
+    import pickle
+    import mmdet3d
+    
+    with open("./tests/inputs/uniad.pickle","rb") as f:
+        inputs = pickle.load(f)
+        
+    img = inputs["img"]
+    img_metas = inputs["img_metas"]
+    l2g_t = inputs["l2g_t"]
+    l2g_r_mat = inputs["l2g_r_mat"]
+    timestamp = inputs["timestamp"]
+    gt_lane_labels = inputs["gt_lane_labels"]
+    gt_lane_masks = inputs["gt_lane_masks"]
+    rescale = inputs["rescale"]
+    sdc_planning = inputs["sdc_plannning"]
+    sdc_planning_mask = inputs["sdc_planning_mask"]
+    command = inputs["command"]
+    gt_segmentation = inputs["gt_segmentation"]
+    gt_instance = inputs["gt_instance"]
+    gt_occ_img_is_valid = inputs["gt_occ_img_is_valid"]
+    kwargs = inputs["kwargs"]
     cfg.pop('type')
-    import pdb
-    pdb.set_trace()
-    model = UniAD(**cfg)
+    model = UniAD(**cfg).to("cuda")
+    print(model)
+
+
+    model.forward_test(**inputs)
     
     
 
