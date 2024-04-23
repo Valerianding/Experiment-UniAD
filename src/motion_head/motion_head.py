@@ -68,6 +68,7 @@ class MotionHead(BaseMotionHead):
         
         self.use_nonlinear_optimizer = use_nonlinear_optimizer
         self.unflatten_traj = nn.Unflatten(3, (self.predict_steps, 5))
+        self.log_softmax = nn.LogSoftmax(dim=2)
 
         self._load_anchors(anchor_info_path)
         self._build_layers(transformerlayers, det_layer_num)
