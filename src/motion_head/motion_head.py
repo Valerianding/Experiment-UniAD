@@ -67,6 +67,8 @@ class MotionHead(BaseMotionHead):
         self.vehicle_id_list = vehicle_id_list
         
         self.use_nonlinear_optimizer = use_nonlinear_optimizer
+        self.unflatten_traj = nn.Unflatten(3, (self.predict_steps, 5))
+
         self._load_anchors(anchor_info_path)
         self._build_layers(transformerlayers, det_layer_num)
         self._init_layers()
