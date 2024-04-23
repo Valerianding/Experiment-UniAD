@@ -29,3 +29,4 @@
     └── weights
 ```
 3. 每次提交前在tests文件夹下面运行pytest test_modules.py 和 pytest test_builder.py
+4. 注意！！！ 如果提交了大的文件超过100m 需要先git lfs track <file> 然后再提交
