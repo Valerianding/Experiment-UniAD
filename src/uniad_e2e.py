@@ -243,6 +243,9 @@ class UniAD(UniADTrack):
                     ):
         """Test function
         """
+        
+        import pdb
+        pdb.set_trace()
         for var, name in [(img_metas, 'img_metas')]:
             if not isinstance(var, list):
                 raise TypeError('{} must be a list, but got {}'.format(

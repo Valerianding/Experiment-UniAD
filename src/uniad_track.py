@@ -120,8 +120,6 @@ class UniADTrack(MVXTwoStageDetector):
             dim_out=embed_dims,
         )
 
-        import pdb
-        pdb.set_trace()
         self.bbox_coder = build_bbox_coder(bbox_coder)
 
         self.memory_bank = MemoryBank(

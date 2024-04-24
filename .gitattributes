@@ -2,3 +2,4 @@ tests/inputs/img_backbone.pickle filter=lfs diff=lfs merge=lfs -text
 tests/weights/img_backbone.pth filter=lfs diff=lfs merge=lfs -text
 tests/inputs/bev_encoder.pickle filter=lfs diff=lfs merge=lfs -text
 tests/inputs/uniad.pickle filter=lfs diff=lfs merge=lfs -text
+tests/weights/seg_head.pth filter=lfs diff=lfs merge=lfs -text

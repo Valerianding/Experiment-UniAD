@@ -30,3 +30,8 @@
 ```
 3. 每次提交前在tests文件夹下面运行pytest test_modules.py 和 pytest test_builder.py
 4. 注意！！！ 如果提交了大的文件超过100m 需要先git lfs track <file> 然后再提交
+
+如何验证正确性：
+
+1. 在UniAD原仓库前面用 torch.save(self.seg_head.state_dict(),"/tmp/seg_head_weights.pth") 这样来保存weights，同时需要保存输入、利用pickle保存（这里GPT一下如何保存模型输入就行）
+2. 在当前项目的model上load weights 如何把inputs拿出来对进去跑就行了，这样就不用管之前的网络结果是不是正确的

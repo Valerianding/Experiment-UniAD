@@ -510,9 +510,9 @@ if __name__ == "__main__":
     kwargs = inputs["kwargs"]
     cfg.pop('type')
     model = UniAD(**cfg).to("cuda")
-    print(model)
-
-
+    import torch
+    model.seg_head.load_state_dict(torch.load("./tests/weights/seg_head.pth"))
+    print("seg head loaded weights!")
     model.forward_test(**inputs)
     
     
