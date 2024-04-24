@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch
-import torch.functional as F
+import torch.nn.functional as F
 from src.utils.utils import calculate_birds_eye_view_parameters
 
 # Grid sampler
