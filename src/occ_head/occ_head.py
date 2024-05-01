@@ -316,8 +316,13 @@ class OccHead(nn.Module):
 
         ins_query = self.merge_queries(outs_dict, self.detach_query_pos)
 
+        torch.cuda.synchronize()
+        import time
+        start = time.perf_counter()
         _, pred_ins_logits = self(bev_feat, ins_query=ins_query)
-
+        torch.cuda.synchronize()
+        end = time.perf_counter()
+        print(f"occ-head: {(end - start) * 1000}ms")
         out_dict['pred_ins_logits'] = pred_ins_logits
 
         pred_ins_logits = pred_ins_logits[:,:,:1+self.n_future]  # [b, q, t, h, w]

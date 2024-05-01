@@ -5,3 +5,6 @@
 **/ops/dist/
 **/ops/build/
 **/src/data
+**/tests/weights
+**/tests/inputs
+**/output.txt

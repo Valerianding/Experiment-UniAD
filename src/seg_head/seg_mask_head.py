@@ -19,7 +19,7 @@ class Mlp(nn.Module):
 
         self.act = act_layer()
         self.fc2 = nn.Linear(hidden_features, out_features)
-        self.drop = nn.Dropout(drop)
+        self.drop = nn.Dropout(0)
 
     # @force_fp32(apply_to=('x', ))
     def forward(self, x):
@@ -46,9 +46,9 @@ class SelfAttention(nn.Module):
         self.scale = qk_scale or head_dim**-0.5
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
-        self.attn_drop = nn.Dropout(attn_drop)
+        self.attn_drop = nn.Dropout(0)
         self.proj = nn.Linear(dim, dim)
-        self.proj_drop = nn.Dropout(proj_drop)
+        self.proj_drop = nn.Dropout(0)
 
     # @force_fp32(apply_to=('x', ))
     def forward(self, x):
@@ -87,9 +87,9 @@ class Attention(nn.Module):
         self.q = nn.Linear(dim, dim, bias=qkv_bias)
         self.k = nn.Linear(dim, dim, bias=qkv_bias)
         self.v = nn.Linear(dim, dim, bias=qkv_bias)
-        self.attn_drop = nn.Dropout(attn_drop)
+        self.attn_drop = nn.Dropout(0)
         self.proj = nn.Linear(dim, dim)
-        self.proj_drop = nn.Dropout(proj_drop)
+        self.proj_drop = nn.Dropout(0)
         self.linear_l1 = nn.Sequential(
             nn.Linear(self.num_heads, self.num_heads),
             nn.ReLU(),

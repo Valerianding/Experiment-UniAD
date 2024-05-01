@@ -382,6 +382,8 @@ class PansegformerHead(SegDETRHead):
             mlvl_positional_encodings.append(
                 self.positional_encoding(mlvl_masks[-1]))
             
+        
+        # print(f"mlvl: {mlvl_positional_encodings}")
         #query_embedding
         #self.transformer
         query_embeds = None
@@ -396,6 +398,7 @@ class PansegformerHead(SegDETRHead):
             reg_branches=self.reg_branches if self.with_box_refine else None,  # noqa:E501
             cls_branches=self.cls_branches if self.as_two_stage else None  # noqa:E501
         )
+        # print(f"hs2:{hs}")
         memory = memory.permute(1, 0, 2)
         query = hs[-1].permute(1, 0, 2)
         query_pos = query_pos.permute(1, 0, 2)
@@ -449,8 +452,14 @@ class PansegformerHead(SegDETRHead):
         bbox_list = [dict() for i in range(len(img_metas))]
         
         # save the statics for correctness
+        torch.cuda.synchronize()
+        import time
+        start = time.perf_counter()
         pred_seg_dict = self(pts_feats)
+        torch.cuda.synchronize()
+        end = time.perf_counter()
         
+        print(f"seg-head: {(end - start) * 1000}ms")
         results = self.get_bboxes(pred_seg_dict['outputs_classes'],
                                            pred_seg_dict['outputs_coords'],
                                            pred_seg_dict['enc_outputs_class'],

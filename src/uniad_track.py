@@ -71,7 +71,7 @@ class UniADTrack(MVXTwoStageDetector):
         )
 
         self.grid_mask = GridMask(
-            True, True, rotate=1, offset=False, ratio=0.5, mode=1, prob=0.7
+            True, True, rotate=1, offset=False, ratio=0.5, mode=1, prob=0
         )
         self.use_grid_mask = use_grid_mask
         self.fp16_enabled = False
@@ -146,6 +146,10 @@ class UniADTrack(MVXTwoStageDetector):
         assert img.dim() == 5
         B, N, C, H, W = img.size()
         img = img.reshape(B * N, C, H, W)
+        
+        torch.cuda.synchronize()
+        import time
+        start = time.perf_counter()
         if self.use_grid_mask:
             img = self.grid_mask(img)
         img_feats = self.img_backbone(img)
@@ -154,6 +158,10 @@ class UniADTrack(MVXTwoStageDetector):
         if self.with_img_neck:
             img_feats = self.img_neck(img_feats)
 
+        torch.cuda.synchronize()
+        end = time.perf_counter()
+        print(f"grid_mask + resnet + fpn: {(end - start) * 1000}ms")
+        
         img_feats_reshaped = []
         for img_feat in img_feats:
             _, c, h, w = img_feat.size()
@@ -329,6 +337,11 @@ class UniADTrack(MVXTwoStageDetector):
             prev_bev = self.get_history_bev(prev_img, prev_img_metas)
 
         img_feats = self.extract_img_feat(img=imgs)
+        
+        torch.cuda.synchronize()
+        import time
+        start = time.perf_counter()
+        
         if self.freeze_bev_encoder:
             with torch.no_grad():
                 bev_embed, bev_pos = self.pts_bbox_head.get_bev_features(
@@ -337,6 +350,9 @@ class UniADTrack(MVXTwoStageDetector):
             bev_embed, bev_pos = self.pts_bbox_head.get_bev_features(
                     mlvl_feats=img_feats, img_metas=img_metas, prev_bev=prev_bev)
         
+        torch.cuda.synchronize()
+        end = time.perf_counter()
+        print(f"bev encoder: {(end - start) * 1000}ms")
         if bev_embed.shape[1] == self.bev_h * self.bev_w:
             bev_embed = bev_embed.permute(1, 0, 2)
         
@@ -344,124 +360,124 @@ class UniADTrack(MVXTwoStageDetector):
         return bev_embed, bev_pos
 
     # @auto_fp16(apply_to=("img", "prev_bev"))
-    def _forward_single_frame_train(
-        self,
-        img,
-        img_metas,
-        track_instances,
-        prev_img,
-        prev_img_metas,
-        l2g_r1=None,
-        l2g_t1=None,
-        l2g_r2=None,
-        l2g_t2=None,
-        time_delta=None,
-        all_query_embeddings=None,
-        all_matched_indices=None,
-        all_instances_pred_logits=None,
-        all_instances_pred_boxes=None,
-    ):
-        """
-        Perform forward only on one frame. Called in  forward_train
-        Warnning: Only Support BS=1
-        Args:
-            img: shape [B, num_cam, 3, H, W]
-            if l2g_r2 is None or l2g_t2 is None:
-                it means this frame is the end of the training clip,
-                so no need to call velocity update
-        """
-        # NOTE: You can replace BEVFormer with other BEV encoder and provide bev_embed here
-        bev_embed, bev_pos = self.get_bevs(
-            img, img_metas,
-            prev_img=prev_img, prev_img_metas=prev_img_metas,
-        )
+    # def _forward_single_frame_train(
+    #     self,
+    #     img,
+    #     img_metas,
+    #     track_instances,
+    #     prev_img,
+    #     prev_img_metas,
+    #     l2g_r1=None,
+    #     l2g_t1=None,
+    #     l2g_r2=None,
+    #     l2g_t2=None,
+    #     time_delta=None,
+    #     all_query_embeddings=None,
+    #     all_matched_indices=None,
+    #     all_instances_pred_logits=None,
+    #     all_instances_pred_boxes=None,
+    # ):
+    #     """
+    #     Perform forward only on one frame. Called in  forward_train
+    #     Warnning: Only Support BS=1
+    #     Args:
+    #         img: shape [B, num_cam, 3, H, W]
+    #         if l2g_r2 is None or l2g_t2 is None:
+    #             it means this frame is the end of the training clip,
+    #             so no need to call velocity update
+    #     """
+    #     # NOTE: You can replace BEVFormer with other BEV encoder and provide bev_embed here
+    #     bev_embed, bev_pos = self.get_bevs(
+    #         img, img_metas,
+    #         prev_img=prev_img, prev_img_metas=prev_img_metas,
+    #     )
 
-        det_output = self.pts_bbox_head.get_detections(
-            bev_embed,
-            object_query_embeds=track_instances.query,
-            ref_points=track_instances.ref_pts,
-            img_metas=img_metas,
-        )
+    #     det_output = self.pts_bbox_head.get_detections(
+    #         bev_embed,
+    #         object_query_embeds=track_instances.query,
+    #         ref_points=track_instances.ref_pts,
+    #         img_metas=img_metas,
+    #     )
 
-        output_classes = det_output["all_cls_scores"]
-        output_coords = det_output["all_bbox_preds"]
-        output_past_trajs = det_output["all_past_traj_preds"]
-        last_ref_pts = det_output["last_ref_points"]
-        query_feats = det_output["query_feats"]
+    #     output_classes = det_output["all_cls_scores"]
+    #     output_coords = det_output["all_bbox_preds"]
+    #     output_past_trajs = det_output["all_past_traj_preds"]
+    #     last_ref_pts = det_output["last_ref_points"]
+    #     query_feats = det_output["query_feats"]
 
-        out = {
-            "pred_logits": output_classes[-1],
-            "pred_boxes": output_coords[-1],
-            "pred_past_trajs": output_past_trajs[-1],
-            "ref_pts": last_ref_pts,
-            "bev_embed": bev_embed,
-            "bev_pos": bev_pos
-        }
-        with torch.no_grad():
-            track_scores = output_classes[-1, 0, :].sigmoid().max(dim=-1).values
+    #     out = {
+    #         "pred_logits": output_classes[-1],
+    #         "pred_boxes": output_coords[-1],
+    #         "pred_past_trajs": output_past_trajs[-1],
+    #         "ref_pts": last_ref_pts,
+    #         "bev_embed": bev_embed,
+    #         "bev_pos": bev_pos
+    #     }
+    #     with torch.no_grad():
+    #         track_scores = output_classes[-1, 0, :].sigmoid().max(dim=-1).values
 
-        # Step-1 Update track instances with current prediction
-        # [nb_dec, bs, num_query, xxx]
-        nb_dec = output_classes.size(0)
+    #     # Step-1 Update track instances with current prediction
+    #     # [nb_dec, bs, num_query, xxx]
+    #     nb_dec = output_classes.size(0)
 
-        # the track id will be assigned by the matcher.
-        track_instances_list = [
-            self._copy_tracks_for_loss(track_instances) for i in range(nb_dec - 1)
-        ]
-        track_instances.output_embedding = query_feats[-1][0]  # [300, feat_dim]
-        velo = output_coords[-1, 0, :, -2:]  # [num_query, 3]
-        if l2g_r2 is not None:
-            # Update ref_pts for next frame considering each agent's velocity
-            ref_pts = self.velo_update(
-                last_ref_pts[0],
-                velo,
-                l2g_r1,
-                l2g_t1,
-                l2g_r2,
-                l2g_t2,
-                time_delta=time_delta,
-            )
-        else:
-            ref_pts = last_ref_pts[0]
+    #     # the track id will be assigned by the matcher.
+    #     track_instances_list = [
+    #         self._copy_tracks_for_loss(track_instances) for i in range(nb_dec - 1)
+    #     ]
+    #     track_instances.output_embedding = query_feats[-1][0]  # [300, feat_dim]
+    #     velo = output_coords[-1, 0, :, -2:]  # [num_query, 3]
+    #     if l2g_r2 is not None:
+    #         # Update ref_pts for next frame considering each agent's velocity
+    #         ref_pts = self.velo_update(
+    #             last_ref_pts[0],
+    #             velo,
+    #             l2g_r1,
+    #             l2g_t1,
+    #             l2g_r2,
+    #             l2g_t2,
+    #             time_delta=time_delta,
+    #         )
+    #     else:
+    #         ref_pts = last_ref_pts[0]
 
-        dim = track_instances.query.shape[-1]
-        track_instances.ref_pts = self.reference_points(track_instances.query[..., :dim//2])
-        track_instances.ref_pts[...,:2] = ref_pts[...,:2]
+    #     dim = track_instances.query.shape[-1]
+    #     track_instances.ref_pts = self.reference_points(track_instances.query[..., :dim//2])
+    #     track_instances.ref_pts[...,:2] = ref_pts[...,:2]
 
-        track_instances_list.append(track_instances)
+    #     track_instances_list.append(track_instances)
         
-        for i in range(nb_dec):
-            track_instances = track_instances_list[i]
+    #     for i in range(nb_dec):
+    #         track_instances = track_instances_list[i]
 
-            track_instances.scores = track_scores
-            track_instances.pred_logits = output_classes[i, 0]  # [300, num_cls]
-            track_instances.pred_boxes = output_coords[i, 0]  # [300, box_dim]
-            track_instances.pred_past_trajs = output_past_trajs[i, 0]  # [300,past_steps, 2]
+    #         track_instances.scores = track_scores
+    #         track_instances.pred_logits = output_classes[i, 0]  # [300, num_cls]
+    #         track_instances.pred_boxes = output_coords[i, 0]  # [300, box_dim]
+    #         track_instances.pred_past_trajs = output_past_trajs[i, 0]  # [300,past_steps, 2]
 
-            out["track_instances"] = track_instances
-            track_instances, matched_indices = self.criterion.match_for_single_frame(
-                out, i, if_step=(i == (nb_dec - 1))
-            )
-            all_query_embeddings.append(query_feats[i][0])
-            all_matched_indices.append(matched_indices)
-            all_instances_pred_logits.append(output_classes[i, 0])
-            all_instances_pred_boxes.append(output_coords[i, 0])   # Not used
+    #         out["track_instances"] = track_instances
+    #         track_instances, matched_indices = self.criterion.match_for_single_frame(
+    #             out, i, if_step=(i == (nb_dec - 1))
+    #         )
+    #         all_query_embeddings.append(query_feats[i][0])
+    #         all_matched_indices.append(matched_indices)
+    #         all_instances_pred_logits.append(output_classes[i, 0])
+    #         all_instances_pred_boxes.append(output_coords[i, 0])   # Not used
         
-        active_index = (track_instances.obj_idxes>=0) & (track_instances.iou >= self.gt_iou_threshold) & (track_instances.matched_gt_idxes >=0)
-        out.update(self.select_active_track_query(track_instances, active_index, img_metas))
-        out.update(self.select_sdc_track_query(track_instances[900], img_metas))
+    #     active_index = (track_instances.obj_idxes>=0) & (track_instances.iou >= self.gt_iou_threshold) & (track_instances.matched_gt_idxes >=0)
+    #     out.update(self.select_active_track_query(track_instances, active_index, img_metas))
+    #     out.update(self.select_sdc_track_query(track_instances[900], img_metas))
         
-        # memory bank 
-        if self.memory_bank is not None:
-            track_instances = self.memory_bank(track_instances)
-        # Step-2 Update track instances using matcher
+    #     # memory bank 
+    #     if self.memory_bank is not None:
+    #         track_instances = self.memory_bank(track_instances)
+    #     # Step-2 Update track instances using matcher
 
-        tmp = {}
-        tmp["init_track_instances"] = self._generate_empty_tracks()
-        tmp["track_instances"] = track_instances
-        out_track_instances = self.query_interact(tmp)
-        out["track_instances"] = out_track_instances
-        return out
+    #     tmp = {}
+    #     tmp["init_track_instances"] = self._generate_empty_tracks()
+    #     tmp["track_instances"] = track_instances
+    #     out_track_instances = self.query_interact(tmp)
+    #     out["track_instances"] = out_track_instances
+    #     return out
 
     def select_active_track_query(self, track_instances, active_index, img_metas, with_mask=True):
         result_dict = self._track_instances2results(track_instances[active_index], img_metas, with_mask=with_mask)
@@ -641,12 +657,22 @@ class UniADTrack(MVXTwoStageDetector):
 
         # NOTE: You can replace BEVFormer with other BEV encoder and provide bev_embed here
         bev_embed, bev_pos = self.get_bevs(img, img_metas, prev_bev=prev_bev)
+    
+    
+        torch.cuda.synchronize()
+        import time
+        start = time.perf_counter()
         det_output = self.pts_bbox_head.get_detections(
             bev_embed, 
             object_query_embeds=track_instances.query,
             ref_points=track_instances.ref_pts,
             img_metas=img_metas,
         )
+        torch.cuda.synchronize()
+        end = time.perf_counter()
+        print(f"bev decoder: {(end - start) * 1000}ms")
+        
+        # print(f"get_detctions: {det_output}")
         output_classes = det_output["all_cls_scores"]
         output_coords = det_output["all_bbox_preds"]
         last_ref_pts = det_output["last_ref_points"]
@@ -692,6 +718,7 @@ class UniADTrack(MVXTwoStageDetector):
         out["track_instances_fordet"] = track_instances
         out["track_instances"] = out_track_instances
         out["track_obj_idxes"] = track_instances.obj_idxes
+        # print(f"out: {out}")
         return out
 
     def simple_test_track(
@@ -772,6 +799,8 @@ class UniADTrack(MVXTwoStageDetector):
         bboxes_dict = self.bbox_coder.decode(bbox_dict, with_mask=with_mask, img_metas=img_metas)[0]
         bboxes = bboxes_dict["bboxes"]
         # bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
+        import pdb
+        pdb.set_trace()
         bboxes = img_metas[0]["box_type_3d"](bboxes, 9)
         labels = bboxes_dict["labels"]
         scores = bboxes_dict["scores"]

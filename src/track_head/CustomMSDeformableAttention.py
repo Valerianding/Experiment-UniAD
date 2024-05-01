@@ -88,7 +88,7 @@ class DetectionTransformerDecoder(TransformerLayerSequence):
                 key_padding_mask=key_padding_mask,
                 **kwargs)
             output = output.permute(1, 0, 2)
-
+            # print(f"in decoder output:{output}")
             if reg_branches is not None:
                 tmp = reg_branches[lid](output)
 
@@ -105,6 +105,7 @@ class DetectionTransformerDecoder(TransformerLayerSequence):
                 reference_points = new_reference_points.detach()
 
             output = output.permute(1, 0, 2)
+            # print(f"in decoder output2:{output}")
             if self.return_intermediate:
                 intermediate.append(output)
                 intermediate_reference_points.append(reference_points)
@@ -160,7 +161,7 @@ class CustomMSDeformableAttention(nn.Module):
                              f'but got {embed_dims} and {num_heads}')
         dim_per_head = embed_dims // num_heads
         self.norm_cfg = norm_cfg
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(0)
         self.batch_first = batch_first
         self.fp16_enabled = False
 

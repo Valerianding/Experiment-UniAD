@@ -243,9 +243,9 @@ class UniAD(UniADTrack):
                     ):
         """Test function
         """
-        
-        import pdb
-        pdb.set_trace()
+        import time
+        torch.cuda.synchronize()
+        start = time.perf_counter()
         for var, name in [(img_metas, 'img_metas')]:
             if not isinstance(var, list):
                 raise TypeError('{} must be a list, but got {}'.format(
@@ -281,8 +281,11 @@ class UniAD(UniADTrack):
         timestamp = timestamp[0] if timestamp is not None else None
 
         result = [dict() for i in range(len(img_metas))]
+        
         result_track = self.simple_test_track(img, l2g_t, l2g_r_mat, img_metas, timestamp)
 
+        import pdb
+        pdb.set_trace()
         # Upsample bev for tiny model        
         result_track[0] = self.upsample_bev_if_tiny(result_track[0])
         
@@ -290,7 +293,7 @@ class UniAD(UniADTrack):
 
         if self.with_seg_head:
             result_seg =  self.seg_head.forward_test(bev_embed, gt_lane_labels, gt_lane_masks, img_metas, rescale)
-
+            
         if self.with_motion_head:
             result_motion, outs_motion = self.motion_head.forward_test(bev_embed, outs_track=result_track[0], outs_seg=result_seg[0])
             outs_motion['bev_pos'] = result_track[0]['bev_pos']
@@ -308,6 +311,10 @@ class UniAD(UniADTrack):
             )
             result[0]['occ'] = outs_occ
         
+        
+        torch.cuda.synchronize()
+        end = time.perf_counter()
+        print(f"e2e time: {(end - start) * 1000}ms")
         # if self.with_planning_head:
         #     planning_gt=dict(
         #         segmentation=gt_segmentation,

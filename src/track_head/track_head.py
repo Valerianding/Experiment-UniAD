@@ -162,6 +162,8 @@ class BEVFormerTrackHead(DETRHead):
             cls_branches=self.cls_branches if self.as_two_stage else None,
             img_metas=img_metas,
         )
+        # print(f"hs: {hs}")
+    
         hs = hs.permute(0, 2, 1, 3)
         outputs_classes = []
         outputs_coords = []
@@ -175,9 +177,12 @@ class BEVFormerTrackHead(DETRHead):
                 # ref_size_base = inter_box_sizes[lvl - 1]
             reference = inverse_sigmoid(reference)
             outputs_class = self.cls_branches[lvl](hs[lvl])
+            # print(f"cls_branch: {outputs_class}")
             tmp = self.reg_branches[lvl](hs[lvl])  # xydxdyxdz
+            # print(f"reg_branch: {tmp}")
             outputs_past_traj = self.past_traj_reg_branches[lvl](hs[lvl]).view(
                 tmp.shape[0], -1, self.past_steps + self.fut_steps, 2)
+            # print(f"outputs_past_traj: {outputs_past_traj}")
             # TODO: check the shape of reference
             assert reference.shape[-1] == 3
             tmp[..., 0:2] += reference[..., 0:2]
@@ -278,56 +283,56 @@ class BEVFormerTrackHead(DETRHead):
         return (labels, label_weights, bbox_targets, bbox_weights,
                 pos_inds, neg_inds)
 
-    def get_targets(self,
-                    cls_scores_list,
-                    bbox_preds_list,
-                    gt_bboxes_list,
-                    gt_labels_list,
-                    gt_bboxes_ignore_list=None):
-        """"Compute regression and classification targets for a batch image.
-        Outputs from a single decoder layer of a single feature level are used.
-        Args:
-            cls_scores_list (list[Tensor]): Box score logits from a single
-                decoder layer for each image with shape [num_query,
-                cls_out_channels].
-            bbox_preds_list (list[Tensor]): Sigmoid outputs from a single
-                decoder layer for each image, with normalized coordinate
-                (cx, cy, w, h) and shape [num_query, 4].
-            gt_bboxes_list (list[Tensor]): Ground truth bboxes for each image
-                with shape (num_gts, 4) in [tl_x, tl_y, br_x, br_y] format.
-            gt_labels_list (list[Tensor]): Ground truth class indices for each
-                image with shape (num_gts, ).
-            gt_bboxes_ignore_list (list[Tensor], optional): Bounding
-                boxes which can be ignored for each image. Default None.
-        Returns:
-            tuple: a tuple containing the following targets.
-                - labels_list (list[Tensor]): Labels for all images.
-                - label_weights_list (list[Tensor]): Label weights for all \
-                    images.
-                - bbox_targets_list (list[Tensor]): BBox targets for all \
-                    images.
-                - bbox_weights_list (list[Tensor]): BBox weights for all \
-                    images.
-                - num_total_pos (int): Number of positive samples in all \
-                    images.
-                - num_total_neg (int): Number of negative samples in all \
-                    images.
-        """
-        assert gt_bboxes_ignore_list is None, \
-            'Only supports for gt_bboxes_ignore setting to None.'
-        num_imgs = len(cls_scores_list)
-        gt_bboxes_ignore_list = [
-            gt_bboxes_ignore_list for _ in range(num_imgs)
-        ]
+    # def get_targets(self,
+    #                 cls_scores_list,
+    #                 bbox_preds_list,
+    #                 gt_bboxes_list,
+    #                 gt_labels_list,
+    #                 gt_bboxes_ignore_list=None):
+    #     """"Compute regression and classification targets for a batch image.
+    #     Outputs from a single decoder layer of a single feature level are used.
+    #     Args:
+    #         cls_scores_list (list[Tensor]): Box score logits from a single
+    #             decoder layer for each image with shape [num_query,
+    #             cls_out_channels].
+    #         bbox_preds_list (list[Tensor]): Sigmoid outputs from a single
+    #             decoder layer for each image, with normalized coordinate
+    #             (cx, cy, w, h) and shape [num_query, 4].
+    #         gt_bboxes_list (list[Tensor]): Ground truth bboxes for each image
+    #             with shape (num_gts, 4) in [tl_x, tl_y, br_x, br_y] format.
+    #         gt_labels_list (list[Tensor]): Ground truth class indices for each
+    #             image with shape (num_gts, ).
+    #         gt_bboxes_ignore_list (list[Tensor], optional): Bounding
+    #             boxes which can be ignored for each image. Default None.
+    #     Returns:
+    #         tuple: a tuple containing the following targets.
+    #             - labels_list (list[Tensor]): Labels for all images.
+    #             - label_weights_list (list[Tensor]): Label weights for all \
+    #                 images.
+    #             - bbox_targets_list (list[Tensor]): BBox targets for all \
+    #                 images.
+    #             - bbox_weights_list (list[Tensor]): BBox weights for all \
+    #                 images.
+    #             - num_total_pos (int): Number of positive samples in all \
+    #                 images.
+    #             - num_total_neg (int): Number of negative samples in all \
+    #                 images.
+    #     """
+    #     assert gt_bboxes_ignore_list is None, \
+    #         'Only supports for gt_bboxes_ignore setting to None.'
+    #     num_imgs = len(cls_scores_list)
+    #     gt_bboxes_ignore_list = [
+    #         gt_bboxes_ignore_list for _ in range(num_imgs)
+    #     ]
 
-        (labels_list, label_weights_list, bbox_targets_list,
-         bbox_weights_list, pos_inds_list, neg_inds_list) = multi_apply(
-            self._get_target_single, cls_scores_list, bbox_preds_list,
-            gt_labels_list, gt_bboxes_list, gt_bboxes_ignore_list)
-        num_total_pos = sum((inds.numel() for inds in pos_inds_list))
-        num_total_neg = sum((inds.numel() for inds in neg_inds_list))
-        return (labels_list, label_weights_list, bbox_targets_list,
-                bbox_weights_list, num_total_pos, num_total_neg)
+    #     (labels_list, label_weights_list, bbox_targets_list,
+    #      bbox_weights_list, pos_inds_list, neg_inds_list) = multi_apply(
+    #         self._get_target_single, cls_scores_list, bbox_preds_list,
+    #         gt_labels_list, gt_bboxes_list, gt_bboxes_ignore_list)
+    #     num_total_pos = sum((inds.numel() for inds in pos_inds_list))
+    #     num_total_neg = sum((inds.numel() for inds in neg_inds_list))
+    #     return (labels_list, label_weights_list, bbox_targets_list,
+    #             bbox_weights_list, num_total_pos, num_total_neg)
 
     # def loss_single(self,
     #                 cls_scores,
@@ -486,32 +491,32 @@ class BEVFormerTrackHead(DETRHead):
     #     return loss_dict
 
     # @force_fp32(apply_to=('preds_dicts'))
-    def get_bboxes(self, preds_dicts, img_metas, rescale=False):
-        """Generate bboxes from bbox head predictions.
-        Args:
-            preds_dicts (tuple[list[dict]]): Prediction results.
-            img_metas (list[dict]): Point cloud and image's meta info.
-        Returns:
-            list[dict]: Decoded bbox, scores and labels after nms.
-        """
+    # def get_bboxes(self, preds_dicts, img_metas, rescale=False):
+    #     """Generate bboxes from bbox head predictions.
+    #     Args:
+    #         preds_dicts (tuple[list[dict]]): Prediction results.
+    #         img_metas (list[dict]): Point cloud and image's meta info.
+    #     Returns:
+    #         list[dict]: Decoded bbox, scores and labels after nms.
+    #     """
 
-        preds_dicts = self.bbox_coder.decode(preds_dicts)
+    #     preds_dicts = self.bbox_coder.decode(preds_dicts)
 
-        num_samples = len(preds_dicts)
-        ret_list = []
-        for i in range(num_samples):
-            preds = preds_dicts[i]
-            bboxes = preds['bboxes']
+    #     num_samples = len(preds_dicts)
+    #     ret_list = []
+    #     for i in range(num_samples):
+    #         preds = preds_dicts[i]
+    #         bboxes = preds['bboxes']
 
-            bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
+    #         bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
 
-            code_size = bboxes.shape[-1]
-            bboxes = img_metas[i]['box_type_3d'](bboxes, code_size)
-            scores = preds['scores']
-            labels = preds['labels']
-            bbox_index = preds['bbox_index']
-            mask = preds['mask']
+    #         code_size = bboxes.shape[-1]
+    #         bboxes = img_metas[i]['box_type_3d'](bboxes, code_size)
+    #         scores = preds['scores']
+    #         labels = preds['labels']
+    #         bbox_index = preds['bbox_index']
+    #         mask = preds['mask']
 
-            ret_list.append([bboxes, scores, labels, bbox_index, mask])
+    #         ret_list.append([bboxes, scores, labels, bbox_index, mask])
 
-        return ret_list
+    #     return ret_list

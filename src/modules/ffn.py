@@ -15,7 +15,7 @@ class Dropout(nn.Dropout):
     """
 
     def __init__(self, drop_prob=0.5, inplace=False):
-        super().__init__(p=drop_prob, inplace=inplace)
+        super().__init__(p=0, inplace=inplace)
         
 
 class FFN(nn.Module):

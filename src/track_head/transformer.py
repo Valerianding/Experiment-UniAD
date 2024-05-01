@@ -204,11 +204,12 @@ class PerceptionTransformer(nn.Module):
         init_reference_out = reference_points
         query = query.permute(1, 0, 2)
         query_pos = query_pos.permute(1, 0, 2)
+        # print(f"query_pos: {query_pos}")
         inter_states, inter_references = self.decoder(
             query=query,
             key=None,
             value=bev_embed,
-            query_pos=query_pos,
+            query_pos=query_pos, 
             reference_points=reference_points,
             reg_branches=reg_branches,
             cls_branches=cls_branches,
@@ -216,6 +217,7 @@ class PerceptionTransformer(nn.Module):
             level_start_index=torch.tensor([0], device=query.device),
             img_metas=img_metas
         )
+        # print(f"inter_states: {inter_states}")
         inter_references_out = inter_references
 
         return inter_states, init_reference_out, inter_references_out

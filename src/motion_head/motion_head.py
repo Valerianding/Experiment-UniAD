@@ -83,7 +83,9 @@ class MotionHead(BaseMotionHead):
         
         track_query = torch.cat([track_query, outs_track['sdc_embedding'][None, None, None, :]], dim=2)
         sdc_track_boxes = outs_track['sdc_track_bbox_results']
-
+        
+        import pdb
+        pdb.set_trace()
         track_boxes[0][0].tensor = torch.cat([track_boxes[0][0].tensor, sdc_track_boxes[0][0].tensor], dim=0)
         track_boxes[0][1] = torch.cat([track_boxes[0][1], sdc_track_boxes[0][1]], dim=0)
         track_boxes[0][2] = torch.cat([track_boxes[0][2], sdc_track_boxes[0][2]], dim=0)
@@ -91,8 +93,13 @@ class MotionHead(BaseMotionHead):
         memory, memory_mask, memory_pos, lane_query, _, lane_query_pos, hw_lvl = outs_seg['args_tuple']
         #import time;s_time = time.time()
         #import pdb;pdb.set_trace()
+        import time
+        torch.cuda.synchronize()
+        start = time.perf_counter()
         outs_motion = self(bev_embed, track_query, lane_query, lane_query_pos, track_boxes)
-        # e_time = time.time()
+        torch.cuda.synchronize()
+        end = time.perf_counter()
+        print(f"motion-head: {(end - start) * 1000}")
         # print("motion_head infer time is {}".format(1000 * (e_time - s_time)))
         traj_results = self.get_trajs(outs_motion, track_boxes)
         bboxes, scores, labels, bbox_index, mask = track_boxes[0]

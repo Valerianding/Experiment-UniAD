@@ -637,13 +637,17 @@ class ResNet(nn.Module):
 
     def forward(self, x):
         """Forward function."""
+        # print(f"resnet before all: {x}")
         if self.deep_stem:
             x = self.stem(x)
         else:
             x = self.conv1(x)
             x = self.norm1(x)
             x = self.relu(x)
+            
+        # print(f"resnet before maxpool:{x}")
         x = self.maxpool(x)
+        # print(f"resnet after maxpool:{x}")
         outs = []
         for i, layer_name in enumerate(self.res_layers):
             res_layer = getattr(self, layer_name)
