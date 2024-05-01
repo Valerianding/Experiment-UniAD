@@ -1,3 +1,5 @@
+注意：我在现在的仓库里面没有维护inputs和weights了 因为他们属于lfs 有容量上限 另外我没有保存关于forward_test连续inputs的处理 要自行编写代码处理
+
 为了运行这个项目首先需要
 1. 进入到src/ops/ 文件夹里面 运行python setup.py install 注意这个需要每次更新算子都需要运行一次！！！
 2. 然后将uniad里面的/data文件夹复制到Experiment-UniAD/src/ 下面（应该是需要使用里面的内容的 具体在哪里有点忘了）目录的结构大概是：
